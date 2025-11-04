@@ -106,10 +106,10 @@ export const Teams = () => {
 
                 <div>
                   <h2>Last 3 Mondays</h2>
-                  <div  className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-4">
                     {mondays.map((monday, index) => (
-                      <div key={index}>
-                        {monday.toLocaleDateString()}{" "}
+                      <div className="p-2" key={index}>
+                        <h2>{monday.toLocaleDateString()}</h2>
                         {/* Affichage des entrées hebdomadaires associées */}
                         {team.team_weekly_entries
                           .filter(
@@ -119,14 +119,37 @@ export const Teams = () => {
                           ) // Comparer les dates
                           .map((entry, entryIndex) => (
                             <div
-                              className="border-1 border-gray-200"
+                              className="border-1 border-gray-200 flex flex-col gap-2"
                               key={entryIndex}
                             >
-                              <>Team goals</>
+                              <h3>Team goals</h3>
 
-                              <>Progress notes</>
-                              {entry.team_progress_notes}
-                              <>Next week goals</>
+                              {JSON.parse(entry.team_goals_set_json).map(
+                                (teamGoal, entryIndex) => (
+                                  <div
+                                    key={entryIndex}
+                                    className="text-gray-500 text-sm"
+                                  >
+                                    {teamGoal}
+                                  </div>
+                                )
+                              )}
+
+                              <h3>Progress notes</h3>
+                              <div className="text-gray-500 text-sm">
+                                {entry.team_progress_notes}
+                              </div>
+                              <h3>Next week goals</h3>
+                              {JSON.parse(entry.next_week_team_goals_json).map(
+                                (teamGoalNext, entryIndex) => (
+                                  <div
+                                    key={entryIndex}
+                                    className="text-gray-500 text-sm"
+                                  >
+                                    {teamGoalNext}
+                                  </div>
+                                )
+                              )}
                             </div>
                           ))}
                       </div>
