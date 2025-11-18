@@ -8,11 +8,7 @@ import { createClient } from "@/utils/supabase/server";
 export async function login(email: string, password: string) {
   const supabase = await createClient();
 
-  console.log("email", email);
-
   const userRes = await supabase.from("users").select("*").eq("email", email);
-
-  console.log("userRes", userRes);
 
   if (!userRes || !userRes.data || userRes.data.length === 0) {
     return false;
@@ -49,7 +45,9 @@ export async function login(email: string, password: string) {
   // create record in table session
   const { data, error } = await supabase
     .from("sessions")
-    .insert([{ session_id: randNumber, user_email: email, role:userRes.data[0].role }]);
+    .insert([
+      { session_id: randNumber, user_email: email, role: userRes.data[0].role },
+    ]);
 
   revalidatePath("/", "layout");
   redirect(`/main?sessionId=${randNumber}`);
@@ -75,17 +73,14 @@ export async function signup(formData: FormData) {
   redirect("/account");
 }
 
-export async function getSession(sessionId: number) {
+export async function getUserFromEmail(email: string) {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("sessions")
-    .select("*")
-    .eq("session_id", sessionId);
+  const userRes = await supabase.from("users").select("*").eq("email", email);
 
-  if (data && data.length > 0) {
-    return data[0];
-  } else {
-    return null;
+  if (!userRes || !userRes.data || userRes.data.length === 0) {
+    return false;
   }
+
+  return userRes;
 }

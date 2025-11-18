@@ -13,6 +13,19 @@ export async function getAllStudents() {
   }
 }
 
+export async function getAllStudentsWeeklyEntries() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("students")
+    .select("*, weekly_entries (*)");
+  if (data && data.length > 0) {
+    return data;
+  } else {
+    return null;
+  }
+}
+
 export async function getStudentWeeklyEntries(studentId: string) {
   const supabase = await createClient();
 

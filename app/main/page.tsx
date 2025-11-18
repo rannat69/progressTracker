@@ -12,6 +12,7 @@ import { LogOut } from "@/components/logOut";
 import { getSessionId } from "@/components/db/sessions";
 import { MakeRequest } from "@/components/makeRequest";
 import { CheckRequest } from "@/components/checkRequest";
+import { Dashboard } from "@/components/dashboard";
 
 export default function Main() {
   // get parameter from browser
@@ -96,9 +97,6 @@ export default function Main() {
               return item.id !== "settings";
             });
           }
-
-          console.log("menuTemp", menuTemp);
-
           setMenu(menuTemp);
         }
       });
@@ -131,7 +129,7 @@ export default function Main() {
         </div>
       </div>
       <div className="bg-[#f7f7fb] w-full border-b-1 border-gray-200">
-        <div>{mode === "dashboard" && <div>Dashboard</div>}</div>
+        <div>{mode === "dashboard" && <Dashboard/>}</div>
         <div>{mode === "students" && <Students />}</div>
         <div>{mode === "instructors" && <Instructors />}</div>
         <div>{mode === "courses" && <Courses />}</div>

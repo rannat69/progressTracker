@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { login, signup, getSession } from "./actions";
+import { login, signup } from "../components/db/user";
 import { get } from "http";
 import { useRouter } from "next/navigation";
+import { getSessionId } from "@/components/db/sessions";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -12,8 +13,8 @@ export default function LoginPage() {
     // read from supabase
     const getSessionTemp = async () => {
       const sessionId = sessionStorage.getItem("sessionId");
-      if (sessionId && sessionId !="0") {
-        const sessionRes = await getSession(Number(sessionId));
+      if (sessionId && sessionId != "0") {
+        const sessionRes = await getSessionId(Number(sessionId));
 
         console.log("sessionRes", sessionRes);
 
@@ -51,10 +52,24 @@ export default function LoginPage() {
       <form onSubmit={handleLogin}>
         <div className="flex flex-col gap-5">
           <label htmlFor="email">Email:</label>
-          <input id="email" className="input" name="email" type="email" required />
+          <input
+            id="email"
+            className="input"
+            name="email"
+            type="email"
+            required
+          />
           <label htmlFor="password">Password:</label>
-          <input id="password" className="input" name="password" type="password" required />
-          <button type="submit" className="button">Log in</button>
+          <input
+            id="password"
+            className="input"
+            name="password"
+            type="password"
+            required
+          />
+          <button type="submit" className="button">
+            Log in
+          </button>
           {error && <p className="error">{error}</p>}
         </div>
       </form>
