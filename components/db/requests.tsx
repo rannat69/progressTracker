@@ -9,7 +9,8 @@ export async function getAllRequests() {
     *,
     teams (
       *
-    )
+    ),
+    request_items(*)
   `);
 
   if (error) {
@@ -57,6 +58,40 @@ export async function createRequest(
 
   if (data && data.length > 0) {
     return data;
+  } else {
+    return null;
+  }
+}
+
+export async function createRequestItems(requestId, items) {
+  const supabase = await createClient();
+
+  const datas = [];
+
+  for (const item of items) {
+    const { data, error } = await supabase
+      .from("requests_items")
+      .insert([
+        {
+          request_id: requestId,
+          cost: item.cost,
+          title: item.title,
+          description: item.description,
+          link: item.link,
+        },
+      ])
+      .select();
+
+    if (error) {
+      console.error("Error creating request item:", error);
+      return error; // Handle the error as needed
+    }
+
+    datas.push(data);
+  }
+
+  if (datas && datas.length > 0) {
+    return datas;
   } else {
     return null;
   }

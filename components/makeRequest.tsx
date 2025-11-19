@@ -28,6 +28,8 @@ export const MakeRequest = () => {
   const [teams, setTeams] = useState([]);
   const [team, setTeam] = useState("");
 
+  const [items, setItems] = useState([]);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -43,7 +45,33 @@ export const MakeRequest = () => {
     };
 
     fetchTeams();
+
+    // set items with 3 records
+    const itemsTemp = [];
+    for (let i = 0; i < 1; i++) {
+      itemsTemp.push({
+        id: i,
+        title: "",
+        desc: "",
+        cost: 0,
+        link: "",
+      });
+    }
+
+    setItems(itemsTemp);
   }, []);
+
+  function handleAddItem() {
+    const itemsTemp = [...items];
+    itemsTemp.push({
+      id: items.length,
+      title: "",
+      desc: "",
+      cost: 0,
+      link: "",
+    });
+    setItems(itemsTemp);
+  }
 
   async function handleSaveRequest(): Promise<void> {
     // check if cost is numeric and > 0
@@ -151,6 +179,64 @@ export const MakeRequest = () => {
           value={date}
           onChange={(e) => setDate(e.target.value)}
         />
+
+        <h3>Items</h3>
+        <div className="m-5 flex flex-col gap-10">
+          {items.map((item) => (
+            <div className="flex flex-col gap-2">
+              <input
+                type="text"
+                placeholder="Item title"
+                className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
+                value={item.title}
+                onChange={(e) => {
+                  const newItems = [...items];
+                  newItems[item.id].title = e.target.value;
+                  setItems(newItems);
+                }}
+              />
+
+              <input
+                type="text"
+                placeholder="Item description"
+                className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
+                value={item.desc}
+                onChange={(e) => {
+                  const newItems = [...items];
+                  newItems[item.id].desc = e.target.value;
+                  setItems(newItems);
+                }}
+              />
+
+              <input
+                type="number"
+                placeholder="Item cost"
+                className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
+                value={item.cost}
+                onChange={(e) => {
+                  const newItems = [...items];
+                  newItems[item.id].cost = Number(e.target.value);
+                  setItems(newItems);
+                }}
+              />
+
+              <input
+                type="text"
+                placeholder="Item link"
+                className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
+                value={item.link}
+                onChange={(e) => {
+                  const newItems = [...items];
+                  newItems[item.id].link = e.target.value;
+                  setItems(newItems);
+                }}
+              />
+            </div>
+          ))}
+        </div>
+        <button className="button w-1/4" onClick={() => handleAddItem()}>
+          Add item
+        </button>
 
         <h3>Cost</h3>
         <input
