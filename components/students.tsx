@@ -18,6 +18,9 @@ export const Students = () => {
 
   const [loading, setLoading] = useState(false);
 
+  const [nameFilter, setNameFilter] = useState("");
+  const [teamFilter, setTeamFilter] = useState("");
+
   // check monday of current week
   const today = new Date();
   let currentWeekMonday = null;
@@ -75,12 +78,29 @@ export const Students = () => {
   function handleFilterName(value: string): void {
     console.log();
 
+    setNameFilter(value);
+    let filtered = studentsUnfiltered;
+
+    console.log("teamFilter", teamFilter);
+
+    if (teamFilter != "") {
+      filtered = filtered.filter((student) => {
+        return (
+          student.team_memberships &&
+          student.team_memberships.some(
+            (membership) => membership.team_id === teamFilter
+          )
+        );
+      });
+    }
+
     if (value === "") {
-      setStudents(studentsUnfiltered);
+      setNameFilter("");
+      setStudents(filtered);
       return;
     }
 
-    let filtered = studentsUnfiltered.filter((student) => {
+    filtered = filtered.filter((student) => {
       return student.full_name.toLowerCase().includes(value.toLowerCase());
     });
 
@@ -88,12 +108,26 @@ export const Students = () => {
   }
 
   function handleFilterTeam(value: string): void {
+    setTeamFilter(value);
+    let filtered = studentsUnfiltered;
+
+    console.log("nameFilter", nameFilter);
+
+    if (nameFilter != "") {
+      filtered = filtered.filter((student) => {
+        return student.full_name
+          .toLowerCase()
+          .includes(nameFilter.toLowerCase());
+      });
+    }
+
     if (value === "") {
-      setStudents(studentsUnfiltered);
+      setTeamFilter("");
+      setStudents(filtered);
       return;
     }
 
-    let filtered = studentsUnfiltered.filter((student) => {
+    filtered = filtered.filter((student) => {
       return (
         student.team_memberships &&
         student.team_memberships.some(
