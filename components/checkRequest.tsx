@@ -92,8 +92,21 @@ export const CheckRequest = () => {
           <p>{request.teams.team_name}</p>
           <p>{request.description}</p>
           <p>Request Date: {request.date}</p>
-          <p>Cost: {request.cost}</p>
+          <p>Total cost: {request.cost}</p>
           <p>Status: {request.status}</p>
+
+          <h3>Items</h3>
+          <div className="ml-2 border border-gray-300 p-2 rounded flex flex-col gap-3">
+            {request.requests_items.map((item) => (
+              <div key={item.id}>
+                <p>{item.item_name}</p>
+                <p>{item.item_description}</p>
+                <p>{item.link}</p>
+                <p>{item.cost} HKD</p>
+              </div>
+            ))}
+          </div>
+
           <div className="mt-4">
             <button
               onClick={onAccept}

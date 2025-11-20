@@ -10,11 +10,36 @@ export async function getAllRequests() {
     teams (
       *
     ),
-    request_items(*)
+    requests_items (
+      *
+    )
   `);
 
   if (error) {
     console.error("Error fetching requests:", error);
+    return null; // Handle the error as needed
+  }
+
+  if (data && data.length > 0) {
+    return data;
+  } else {
+    return null;
+  }
+}
+
+export async function getAllRequestItemsForRequest(id: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("requests_items")
+    .select(
+      `
+    *`
+    )
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error fetching request items:", error);
     return null; // Handle the error as needed
   }
 
@@ -75,8 +100,8 @@ export async function createRequestItems(requestId, items) {
         {
           request_id: requestId,
           cost: item.cost,
-          title: item.title,
-          description: item.description,
+          item_name: item.title,
+          item_description: item.description,
           link: item.link,
         },
       ])
