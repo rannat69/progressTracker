@@ -4,7 +4,7 @@ import {
   getStudentWeeklyEntries,
 } from "./db/students";
 
-export const StudentDetail = (selectedStudent) => {
+export const StudentDetail = (selectedStudent: any) => {
   selectedStudent = selectedStudent.selectedStudent;
 
   // goals
@@ -36,7 +36,7 @@ export const StudentDetail = (selectedStudent) => {
   const [date, setDate] = useState(today);
   const [nextWeekGoals, setNextWeekGoals] = useState([""]);
 
-  const [studentWeeklyEntries, setStudentWeeklyEntries] = useState([]);
+  const [studentWeeklyEntries, setStudentWeeklyEntries] = useState<any[]>([]);
   const [progressGoal, setProgressGoal] = useState("");
 
   const [error, setError] = useState("");
@@ -421,35 +421,41 @@ export const StudentDetail = (selectedStudent) => {
                 </div>
               </div>
               <ul>
-                {JSON.parse(entry.goals_set_json).map((goal, index) => {
-                  const status = JSON.parse(entry.per_goal_status_json)[index];
-                  let bulletColor;
+                {JSON.parse(entry.goals_set_json).map(
+                  (goal: any, index: number) => {
+                    const status = JSON.parse(entry.per_goal_status_json)[
+                      index
+                    ];
+                    let bulletColor;
 
-                  if (status === "achieved") {
-                    bulletColor = "text-green-600"; // Couleur verte
-                  } else if (status === "partial") {
-                    bulletColor = "text-orange-300"; // Couleur orange
-                  } else {
-                    bulletColor = "text-red-500"; // Couleur rouge
+                    if (status === "achieved") {
+                      bulletColor = "text-green-600"; // Couleur verte
+                    } else if (status === "partial") {
+                      bulletColor = "text-orange-300"; // Couleur orange
+                    } else {
+                      bulletColor = "text-red-500"; // Couleur rouge
+                    }
+
+                    return (
+                      <li key={index} className={`flex items-center`}>
+                        <span className={`mr-2 ${bulletColor} text-xl`}>•</span>
+                        {goal}
+                      </li>
+                    );
                   }
-
-                  return (
-                    <li key={index} className={`flex items-center`}>
-                      <span className={`mr-2 ${bulletColor} text-xl`}>•</span>
-                      {goal}
-                    </li>
-                  );
-                })}
+                )}
               </ul>
 
               <h2>Next week goals :</h2>
 
               <ul>
-                {JSON.parse(entry.next_week_goals_json).map((goal, index) => (
-                  <li key={index} className="text-gray-500 text-sm">
-                    •{goal}
-                  </li>
-                ))}
+                {JSON.parse(entry.next_week_goals_json).map(
+                  (goal: any, index: number) => (
+                    <li key={index} className="text-gray-500 text-sm">
+                      •{goal}
+                    </li>
+                  )
+                )}
               </ul>
             </div>
           ))}

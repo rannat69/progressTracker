@@ -6,9 +6,9 @@ import { createTeamExpense } from "./db/teamExpenses";
 export const CheckRequest = () => {
   // read data from supabase
 
-  const [requests, setRequests] = useState([]);
+  const [requests, setRequests] = useState<any[]>([]);
 
-  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -21,8 +21,6 @@ export const CheckRequest = () => {
       const requestsTemp = await getAllRequests();
 
       if (requestsTemp) {
-        console.log(requestsTemp);
-
         setRequests(requestsTemp);
         setLoading(false);
       }
@@ -84,7 +82,7 @@ export const CheckRequest = () => {
     setSelectedRequest(null); // Close the popup
   };
 
-  const Popup = ({ request, onClose, onAccept, onDecline }) => {
+  const Popup = ({ request, onClose, onAccept, onDecline }: { request: any; onClose: () => void; onAccept: () => void; onDecline: () => void }) => {
     return (
       <div className="fixed inset-0 bg-black/50  bg-opacity-5 flex justify-center items-center">
         <div className="bg-white p-5 rounded-lg shadow-lg">
@@ -97,7 +95,7 @@ export const CheckRequest = () => {
 
           <h3>Items</h3>
           <div className="ml-2 border border-gray-300 p-2 rounded flex flex-col gap-3">
-            {request.requests_items.map((item) => (
+            {request.requests_items.map((item: any) => (
               <div key={item.id}>
                 <p>{item.item_name}</p>
                 <p>{item.item_description}</p>

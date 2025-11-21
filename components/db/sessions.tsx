@@ -13,16 +13,13 @@ export async function getAllSessions() {
   }
 }
 
-export async function getSessionId(session_id) {
+export async function getSessionId(session_id: any) {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("sessions")
     .select("*")
     .eq("session_id", session_id);
-
-  console.log("session_id", session_id);
-  console.log("data", data);
 
   if (data && data.length > 0) {
     return data;

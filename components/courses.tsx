@@ -6,7 +6,7 @@ import { CourseDetail } from "./courseDetail";
 export const Courses = () => {
   // read data from supabase
 
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState<any[]>([]);
 
   const [selectedCourse, setSelectedCourse] = useState(null);
 

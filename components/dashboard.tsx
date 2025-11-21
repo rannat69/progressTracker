@@ -5,7 +5,7 @@ import { StudentDetail } from "./studentDetail";
 export const Dashboard = () => {
   // read data from supabase
 
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<any[]>([]);
 
   const [selectedStudent, setSelectedStudent] = useState(null);
 
@@ -33,7 +33,7 @@ export const Dashboard = () => {
         console.log("studentsTemp", studentsTemp);
 
         for (const student of studentsTemp) {
-          student.weekly_entries = student.weekly_entries.filter((entry) => {
+          student.weekly_entries = student.weekly_entries.filter((entry: any) => {
             const entryDate = new Date(entry.week_start_date);
 
             const entryDateOnly = new Date(
@@ -172,7 +172,7 @@ export const Dashboard = () => {
                                 student.weekly_entries[0].per_goal_status_json
                               );
                               const achievedCount = statuses.filter(
-                                (status) => status === "achieved"
+                                (status: any) => status === "achieved"
                               ).length;
                               const totalCount = statuses.length;
 

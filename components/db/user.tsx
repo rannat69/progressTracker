@@ -48,9 +48,9 @@ export async function login(email: string, password: string) {
     .insert([
       { session_id: randNumber, user_email: email, role: userRes.data[0].role },
     ]);
-
-  revalidatePath("/", "layout");
-  redirect(`/main?sessionId=${randNumber}`);
+  return { randNumber: randNumber, error: false };
+  // revalidatePath("/", "layout");
+  //redirect(`/main?sessionId=${randNumber}`);
 }
 
 export async function signup(formData: FormData) {

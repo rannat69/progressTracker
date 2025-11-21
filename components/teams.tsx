@@ -5,9 +5,9 @@ import { getAllTeams, getAllTeamsInfo } from "./db/teams";
 export const Teams = () => {
   // read data from supabase
 
-  const [teams, setTeams] = useState([]);
+  const [teams, setTeams] = useState<any[]>([]);
 
-  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState<any>(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -77,9 +77,11 @@ export const Teams = () => {
                   <div>
                     <h2>Members</h2>
                     <div className="flex text-gray-500 text-sm gap-2">
-                      {team.team_memberships.map((member, index) => (
-                        <h3>{member.students.full_name}</h3>
-                      ))}
+                      {team.team_memberships.map(
+                        (member: any, index: number) => (
+                          <h3>{member.students.full_name}</h3>
+                        )
+                      )}
                     </div>
                   </div>
                 )}
@@ -92,7 +94,7 @@ export const Teams = () => {
                   <div>
                     <h2>Expenses</h2>
                     <ul className="flex flex-col gap-3 p-3 border-1 border-gray-200 rounded-xl">
-                      {team.team_expenses.map((expense, index) => (
+                      {team.team_expenses.map((expense: any, index: number) => (
                         <li key={index}>
                           <h3>{expense.title}</h3>
                           <p className="text-gray-500 text-sm">
@@ -116,11 +118,11 @@ export const Teams = () => {
                         {/* Affichage des entrées hebdomadaires associées */}
                         {team.team_weekly_entries
                           .filter(
-                            (entry) =>
+                            (entry: any) =>
                               entry.week_start_date ===
                               monday.toISOString().split("T")[0]
                           ) // Comparer les dates
-                          .map((entry, entryIndex) => (
+                          .map((entry: any, entryIndex: number) => (
                             <div
                               className="border-1 border-gray-200 flex flex-col gap-2"
                               key={entryIndex}
@@ -128,7 +130,7 @@ export const Teams = () => {
                               <h3>Team goals</h3>
 
                               {JSON.parse(entry.team_goals_set_json).map(
-                                (teamGoal, entryIndex) => (
+                                (teamGoal: string, entryIndex: number) => (
                                   <div
                                     key={entryIndex}
                                     className="text-gray-500 text-sm"
@@ -144,7 +146,7 @@ export const Teams = () => {
                               </div>
                               <h3>Next week goals</h3>
                               {JSON.parse(entry.next_week_team_goals_json).map(
-                                (teamGoalNext, entryIndex) => (
+                                (teamGoalNext: string, entryIndex: number) => (
                                   <div
                                     key={entryIndex}
                                     className="text-gray-500 text-sm"

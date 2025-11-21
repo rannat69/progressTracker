@@ -1,6 +1,5 @@
 import { getAllCourses } from "./db/courses";
 
-import * as XLSX from "xlsx";
 import ExcelJS, { Workbook } from "exceljs";
 import { getAllInstructors } from "./db/instructors";
 import { getAllTeams } from "./db/teams";
@@ -33,18 +32,20 @@ export const Reports = () => {
     ];
 
     // Add content of instructors into worksheet
-    for (const item of students) {
-      worksheet.addRow({
-        id: item.id,
-        full_name: item.full_name,
-        email: item.email,
-        cohort: item.cohort,
-        start_date: item.start_date,
-        status: item.status,
-        notes: item.notes,
-        research_area: item.research_area,
-        supervisor: item.supervisor,
-      });
+    if (students) {
+      for (const item of students) {
+        worksheet.addRow({
+          id: item.id,
+          full_name: item.full_name,
+          email: item.email,
+          cohort: item.cohort,
+          start_date: item.start_date,
+          status: item.status,
+          notes: item.notes,
+          research_area: item.research_area,
+          supervisor: item.supervisor,
+        });
+      }
     }
 
     // Create a buffer and trigger download
@@ -89,17 +90,19 @@ export const Reports = () => {
     ];
 
     // Add content of instructors into worksheet
-    for (const item of weeklyEntries) {
-      worksheet.addRow({
-        id: item.id,
-        team_id: item.team_id,
-        week_start_date: item.week_start_date,
-        goals_set_json: item.goals_set_json,
-        per_goal_status_json: item.per_goal_status_json,
-        overall_status: item.overall_status,
-        progress_notes: item.progress_notes,
-        next_week_goals_json: item.next_week_team_goals_json,
-      });
+    if (weeklyEntries) {
+      for (const item of weeklyEntries) {
+        worksheet.addRow({
+          id: item.id,
+          team_id: item.team_id,
+          week_start_date: item.week_start_date,
+          goals_set_json: item.goals_set_json,
+          per_goal_status_json: item.per_goal_status_json,
+          overall_status: item.overall_status,
+          progress_notes: item.progress_notes,
+          next_week_goals_json: item.next_week_team_goals_json,
+        });
+      }
     }
 
     // Create a buffer and trigger download
@@ -136,16 +139,18 @@ export const Reports = () => {
     ];
 
     // Add content of instructors into worksheet
-    for (const item of weeklyTeamEntries) {
-      worksheet.addRow({
-        id: item.id,
-        team_id: item.team_id,
-        week_start_date: item.week_start_date,
-        team_goals_set_json: item.team_goals_set_json,
-        team_overall_status: item.team_overall_status,
-        team_progress_notes: item.team_progress_notes,
-        next_week_team_goals_json: item.next_week_team_goals_json,
-      });
+    if (weeklyTeamEntries) {
+      for (const item of weeklyTeamEntries) {
+        worksheet.addRow({
+          id: item.id,
+          team_id: item.team_id,
+          week_start_date: item.week_start_date,
+          team_goals_set_json: item.team_goals_set_json,
+          team_overall_status: item.team_overall_status,
+          team_progress_notes: item.team_progress_notes,
+          next_week_team_goals_json: item.next_week_team_goals_json,
+        });
+      }
     }
 
     // Create a buffer and trigger download
@@ -176,13 +181,15 @@ export const Reports = () => {
     ];
 
     // Add content of instructors into worksheet
-    for (const item of teams) {
-      worksheet.addRow({
-        id: item.id,
-        team_name: item.team_name,
-        description: item.description,
-        budget: item.budget,
-      });
+    if (teams) {
+      for (const item of teams) {
+        worksheet.addRow({
+          id: item.id,
+          team_name: item.team_name,
+          description: item.description,
+          budget: item.budget,
+        });
+      }
     }
 
     // Create a buffer and trigger download
@@ -217,13 +224,15 @@ export const Reports = () => {
     ];
 
     // Add content of courses into worksheet
-    for (const item of courses) {
-      worksheet.addRow({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        start_date: item.start_date,
-      });
+    if (courses) {
+      for (const item of courses) {
+        worksheet.addRow({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          start_date: item.start_date,
+        });
+      }
     }
 
     // Create a buffer and trigger download
@@ -253,12 +262,14 @@ export const Reports = () => {
     ];
 
     // Add content of instructors into worksheet
-    for (const item of instructors) {
-      worksheet.addRow({
-        id: item.id,
-        full_name: item.full_name,
-        email: item.email,
-      });
+    if (instructors) {
+      for (const item of instructors) {
+        worksheet.addRow({
+          id: item.id,
+          full_name: item.full_name,
+          email: item.email,
+        });
+      }
     }
 
     // Create a buffer and trigger download

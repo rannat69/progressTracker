@@ -66,17 +66,16 @@ export async function updateTeam(id: number, team: any) {
     .from("teams")
     .update(team)
     .eq("id", id)
-    .select()
-    .then(({ data, error }) => {
-      if (error) {
-        console.error("Error updating team:", error);
-        return error; // Handle the error as needed
-      }
+    .select();
 
-      if (data && data.length > 0) {
-        return data;
-      } else {
-        return null;
-      }
-    });
+  if (error) {
+    console.error("Error updating team:", error);
+    return error;
+  }
+
+  if (data && data.length > 0) {
+    return data;
+  } else {
+    return null;
+  }
 }

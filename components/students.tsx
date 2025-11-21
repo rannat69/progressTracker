@@ -9,12 +9,12 @@ import { getAllTeams } from "./db/teams";
 export const Students = () => {
   // read data from supabase
 
-  const [students, setStudents] = useState([]);
-  const [studentsUnfiltered, setStudentsUnfiltered] = useState([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [studentsUnfiltered, setStudentsUnfiltered] = useState<any[]>([]);
 
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
 
-  const [teams, setTeams] = useState([]);
+  const [teams, setTeams] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -41,31 +41,36 @@ export const Students = () => {
 
       if (studentsTemp) {
         for (const student of studentsTemp) {
-          student.weekly_entries = student.weekly_entries.filter((entry) => {
-            const entryDate = new Date(entry.week_start_date);
+          student.weekly_entries = student.weekly_entries.filter(
+            (entry: any) => {
+              const entryDate = new Date(entry.week_start_date);
 
-            const entryDateOnly = new Date(
-              entryDate.getFullYear(),
-              entryDate.getMonth(),
-              entryDate.getDate()
-            );
-            const currentWeekMondayOnly = new Date(
-              currentWeekMonday.getFullYear(),
-              currentWeekMonday.getMonth(),
-              currentWeekMonday.getDate()
-            );
+              const entryDateOnly = new Date(
+                entryDate.getFullYear(),
+                entryDate.getMonth(),
+                entryDate.getDate()
+              );
+              const currentWeekMondayOnly = new Date(
+                currentWeekMonday.getFullYear(),
+                currentWeekMonday.getMonth(),
+                currentWeekMonday.getDate()
+              );
 
-            return entryDateOnly.getTime() === currentWeekMondayOnly.getTime();
-          });
+              return (
+                entryDateOnly.getTime() === currentWeekMondayOnly.getTime()
+              );
+            }
+          );
 
           student.team = "";
         }
 
-        console.log("studentsTemp", studentsTemp);
+        const teamsRes = await getAllTeams();
 
-        setTeams(await getAllTeams());
+        if (teamsRes) {
+          setTeams(teamsRes);
+        }
 
-        console.log("studentsTempFiltered ", studentsTemp);
         setStudents(studentsTemp);
         setStudentsUnfiltered(studentsTemp);
         setLoading(false);
@@ -88,7 +93,7 @@ export const Students = () => {
         return (
           student.team_memberships &&
           student.team_memberships.some(
-            (membership) => membership.team_id === teamFilter
+            (membership: { team_id: string; }) => membership.team_id === teamFilter
           )
         );
       });
@@ -131,7 +136,7 @@ export const Students = () => {
       return (
         student.team_memberships &&
         student.team_memberships.some(
-          (membership) => membership.team_id === value
+          (membership: { team_id: string; }) => membership.team_id === value
         )
       );
     });
@@ -232,7 +237,7 @@ export const Students = () => {
                               student.weekly_entries[0].per_goal_status_json
                             );
                             const achievedCount = statuses.filter(
-                              (status) => status === "achieved"
+                              (status: string) => status === "achieved"
                             ).length;
                             const totalCount = statuses.length;
 

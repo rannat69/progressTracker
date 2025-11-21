@@ -5,7 +5,7 @@ import { getAllInstructors } from "./db/instructors";
 export const Instructors = () => {
   // read data from supabase
 
-  const [instructors, setInstructors] = useState([]);
+  const [instructors, setInstructors] = useState<any[]>([]);
 
   const [selectedInstructor, setSelectedInstructor] = useState(null);
 

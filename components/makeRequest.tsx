@@ -25,10 +25,10 @@ export const MakeRequest = () => {
   const [desc, setDesc] = useState("");
   const [cost, setCost] = useState(0);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [teams, setTeams] = useState([]);
+  const [teams, setTeams] = useState<any[]>([]);
   const [team, setTeam] = useState("");
 
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState<any[]>([]);
 
   const router = useRouter();
 
@@ -132,25 +132,31 @@ export const MakeRequest = () => {
     }
 
     const dataUser = await getUserFromEmail(email);
-    if (!dataUser) {
+    if (
+      !dataUser ||
+      !dataUser.data ||
+      !Array.isArray(dataUser.data) ||
+      dataUser.data.length === 0
+    ) {
       router.push("/");
+      return;
     }
     // make an insert into table requests in supabase
-    const createTeamRes = await createRequest(
+    const createRequestRes = await createRequest(
       cost,
       date,
       team,
       title,
       desc,
       role,
-      dataUser.data[0].id
+      (dataUser.data as any[])[0].id
     );
 
-    if (!createTeamRes) {
+    if (!createRequestRes) {
       showToast("Error creating request.", "error");
       return;
     } else {
-      await createRequestItems(createTeamRes[0].id, items);
+      await createRequestItems((createRequestRes as any[])[0].id, items);
     }
 
     showToast("Request created successfully.", "success");

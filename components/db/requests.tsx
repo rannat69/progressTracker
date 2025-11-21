@@ -51,13 +51,13 @@ export async function getAllRequestItemsForRequest(id: string) {
 }
 
 export async function createRequest(
-  cost,
-  date,
-  team,
-  title,
-  desc,
-  role,
-  author
+  cost: any,
+  date: any,
+  team: any,
+  title: any,
+  desc: any,
+  role: any,
+  author: any
 ) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -88,7 +88,7 @@ export async function createRequest(
   }
 }
 
-export async function createRequestItems(requestId, items) {
+export async function createRequestItems(requestId: string, items: any) {
   const supabase = await createClient();
 
   const datas = [];
@@ -122,7 +122,7 @@ export async function createRequestItems(requestId, items) {
   }
 }
 
-export async function updateRequestStatus(id, status) {
+export async function updateRequestStatus(id: any, status: any) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("requests")

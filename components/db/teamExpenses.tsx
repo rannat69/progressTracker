@@ -19,17 +19,16 @@ export async function createTeamExpense(expense: any) {
   const { data, error } = await supabase
     .from("team_expenses")
     .insert(expense)
-    .select()
-    .then(({ data, error }) => {
-      if (error) {
-        console.error("Error creating team expense:", error);
-        return error; // Handle the error as needed
-      }
+    .select();
 
-      if (data && data.length > 0) {
-        return data;
-      } else {
-        return null;
-      }
-    });
+  if (error) {
+    console.error("Error creating team expense:", error);
+    return error;
+  }
+
+  if (data && data.length > 0) {
+    return data;
+  } else {
+    return null;
+  }
 }

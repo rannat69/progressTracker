@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 
 import { getStudentsInCourse } from "./db/courses";
 
-export const CourseDetail = (selectedCourse) => {
+export const CourseDetail = (selectedCourse: any) => {
   selectedCourse = selectedCourse.selectedCourse;
   // read data from supabase
 
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(false);
 
