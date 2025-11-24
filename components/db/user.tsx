@@ -22,7 +22,7 @@ export async function login(email: string, password: string) {
 
   console.log("hash", hash);
 */
-  function verifyPassword(password, userHashedPassword) {
+  function verifyPassword(password:string , userHashedPassword:string) {
     return new Promise((resolve, reject) => {
       bcrypt.compare(password, userHashedPassword, (err, result) => {
         if (err) {

@@ -60,11 +60,14 @@ export const CheckRequest = () => {
     const sessionId = sessionStorage.getItem("sessionId");
     const session = await getSessionId(sessionId);
 
-    console.log("session", session);
-
-    selectedRequest.status = "Accepted";
-    updateRequestStatus(selectedRequest.id, session[0].user_email, "Accepted");
-
+    if (session) {
+      selectedRequest.status = "Accepted";
+      updateRequestStatus(
+        selectedRequest.id,
+        session[0].user_email,
+        "Accepted"
+      );
+    }
     // create team_expense
 
     createTeamExpense({
@@ -77,15 +80,23 @@ export const CheckRequest = () => {
     setSelectedRequest(null); // Close the popup
   };
 
-  const handleDecline = () => {
+  const handleDecline = async () => {
     // Logic to decline the request
     console.log("Request declined:", selectedRequest);
 
     // set request to "Declined"
     selectedRequest.status = "Declined";
 
-    updateRequestStatus(selectedRequest.id, "Declined");
+    const sessionId = sessionStorage.getItem("sessionId");
+    const session = await getSessionId(sessionId);
 
+    if (session) {
+      updateRequestStatus(
+        selectedRequest.id,
+        session[0].user_email,
+        "Declined"
+      );
+    }
     setSelectedRequest(null); // Close the popup
   };
 
