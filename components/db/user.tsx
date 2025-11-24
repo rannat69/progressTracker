@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/utils/supabase/server";
 
+import bcrypt from "bcrypt";
+
 export async function login(email: string, password: string) {
   const supabase = await createClient();
 
@@ -12,6 +14,37 @@ export async function login(email: string, password: string) {
 
   if (!userRes || !userRes.data || userRes.data.length === 0) {
     return false;
+  }
+
+  /*console.log("userRes", userRes.data);
+
+  const hash = await bcrypt.hash(userRes.data[0].password, 10);
+
+  console.log("hash", hash);
+*/
+  function verifyPassword(password, userHashedPassword) {
+    return new Promise((resolve, reject) => {
+      bcrypt.compare(password, userHashedPassword, (err, result) => {
+        if (err) {
+          return reject(err); // Handle error
+        }
+        resolve(result); // Return the comparison result
+      });
+    });
+  }
+
+  // Usage with async/await
+
+  try {
+    const isValid = await verifyPassword(password, userRes.data[0].password);
+    if (isValid) {
+      console.log("Password is valid!");
+    } else {
+      console.log("Invalid password.");
+      return false;
+    }
+  } catch (error) {
+    console.error(error); // Handle error
   }
 
   // Initialiser le numéro aléatoire

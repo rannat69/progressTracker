@@ -35,6 +35,9 @@ export default function LoginPage() {
 
     if (email && password) {
       const loginRes = await login(email, password);
+
+      console.log("login Res", loginRes);
+
       if (!loginRes) {
         setError("Invalid email or password");
       } else {

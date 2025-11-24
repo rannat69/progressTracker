@@ -30,31 +30,30 @@ export const Dashboard = () => {
       const studentsTemp = await getAllStudentsWeeklyEntries();
 
       if (studentsTemp) {
-        console.log("studentsTemp", studentsTemp);
 
         for (const student of studentsTemp) {
-          student.weekly_entries = student.weekly_entries.filter((entry: any) => {
-            const entryDate = new Date(entry.week_start_date);
+          student.weekly_entries = student.weekly_entries.filter(
+            (entry: any) => {
+              const entryDate = new Date(entry.week_start_date);
 
-            const entryDateOnly = new Date(
-              entryDate.getFullYear(),
-              entryDate.getMonth(),
-              entryDate.getDate()
-            );
-            const currentWeekMondayOnly = new Date(
-              currentWeekMonday.getFullYear(),
-              currentWeekMonday.getMonth(),
-              currentWeekMonday.getDate()
-            );
+              const entryDateOnly = new Date(
+                entryDate.getFullYear(),
+                entryDate.getMonth(),
+                entryDate.getDate()
+              );
+              const currentWeekMondayOnly = new Date(
+                currentWeekMonday.getFullYear(),
+                currentWeekMonday.getMonth(),
+                currentWeekMonday.getDate()
+              );
 
-            console.log("entryDateOnly", entryDateOnly);
-            console.log("currentWeekMondayOnly", currentWeekMondayOnly);
-
-            return entryDateOnly.getTime() === currentWeekMondayOnly.getTime();
-          });
+              return (
+                entryDateOnly.getTime() === currentWeekMondayOnly.getTime()
+              );
+            }
+          );
         }
 
-        console.log("studentsTempFiltered ", studentsTemp);
         setStudents(studentsTemp);
         setLoading(false);
       }

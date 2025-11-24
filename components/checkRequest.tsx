@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getAllRequests, updateRequestStatus } from "./db/requests";
 import { getTeamById, updateTeam } from "./db/teams";
 import { createTeamExpense } from "./db/teamExpenses";
+import { getSessionId } from "./db/sessions";
 
 export const CheckRequest = () => {
   // read data from supabase
@@ -55,8 +56,14 @@ export const CheckRequest = () => {
       });
     }
 
+    // get email of current user from session
+    const sessionId = sessionStorage.getItem("sessionId");
+    const session = await getSessionId(sessionId);
+
+    console.log("session", session);
+
     selectedRequest.status = "Accepted";
-    updateRequestStatus(selectedRequest.id, "Accepted");
+    updateRequestStatus(selectedRequest.id, session[0].user_email, "Accepted");
 
     // create team_expense
 
@@ -82,7 +89,17 @@ export const CheckRequest = () => {
     setSelectedRequest(null); // Close the popup
   };
 
-  const Popup = ({ request, onClose, onAccept, onDecline }: { request: any; onClose: () => void; onAccept: () => void; onDecline: () => void }) => {
+  const Popup = ({
+    request,
+    onClose,
+    onAccept,
+    onDecline,
+  }: {
+    request: any;
+    onClose: () => void;
+    onAccept: () => void;
+    onDecline: () => void;
+  }) => {
     return (
       <div className="fixed inset-0 bg-black/50  bg-opacity-5 flex justify-center items-center">
         <div className="bg-white p-5 rounded-lg shadow-lg">
