@@ -293,7 +293,7 @@ export const StudentDetail = (selectedStudent: any) => {
         <div></div>
       </div>
       <div className="flex gap-1">
-        <div className="bg-white rounded-lg border border-gray-200 p-2 flex flex-col gap-2 w-1/2">
+        <div className="background rounded-lg border border-gray-200 p-2 flex flex-col gap-2 w-1/2">
           <h2>Quick add / edit weekly entry</h2>
           <div className="flex justify-between">
             <div>
@@ -394,12 +394,12 @@ export const StudentDetail = (selectedStudent: any) => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-2 flex flex-col gap-2 w-1/2">
+        <div className="background rounded-lg border border-gray-200 p-2 flex flex-col gap-2 w-1/2">
           <h2>Weekly entries</h2>
           {studentWeeklyEntries.map((entry, index) => (
             <div
               key={index}
-              className="bg-white rounded-lg border border-gray-200 p-2"
+              className="background rounded-lg border border-gray-200 p-2"
             >
               <div className="flex">
                 <h2>{entry.week_start_date}</h2>

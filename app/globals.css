@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -103,6 +105,7 @@ table th {
   font-size: 0.9rem;
   color: #374151;
 }
+
 table tbody tr:hover {
   background: #f0f0f0;
 }
@@ -110,4 +113,53 @@ table tbody tr {
   background: #fafbfd;
   cursor: pointer;
   border: 1px solid lightgray;
+}
+
+.background {
+  background-color: white;
+}
+
+.menu:hover {
+  background-color: lightgray;
+}
+
+.menured:hover {
+  background-color: lightcoral;
+}
+
+.input {
+  background-color: white;
+}
+
+@media (prefers-color-scheme: dark) {
+  .background {
+    background-color: #222222;
+  }
+
+  .menu:hover {
+    background-color: darkgray;
+  }
+
+  .input {
+    background-color: #222222;
+  }
+
+  table th {
+    background: #333333; /* Dark mode background */
+    color: white; /* Dark mode text color */
+  }
+
+  table tbody tr {
+    background: #222222;
+    cursor: pointer;
+    border: 1px solid lightgray;
+  }
+
+  table tbody tr:hover {
+    background: #2f3e53;
+  }
+
+  .button:hover {
+    background-color: #222222;
+  }
 }

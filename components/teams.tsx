@@ -68,7 +68,7 @@ export const Teams = () => {
             teams.map((team) => (
               <div
                 key={team.team_name}
-                className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 bg-white"
+                className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 background"
               >
                 <h1>{team.team_name}</h1>
                 <p>{team.description}</p>

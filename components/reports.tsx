@@ -284,7 +284,7 @@ export const Reports = () => {
   return (
     <div className="p-3">
       <h1>Reports</h1>
-      <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 bg-white">
+      <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 background">
         <div className="flex flex-col gap-3 w-1/4">
           <h2
             className="border-1 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-200 p-2"

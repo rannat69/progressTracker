@@ -30,7 +30,6 @@ export const Dashboard = () => {
       const studentsTemp = await getAllStudentsWeeklyEntries();
 
       if (studentsTemp) {
-
         for (const student of studentsTemp) {
           student.weekly_entries = student.weekly_entries.filter(
             (entry: any) => {
@@ -62,7 +61,7 @@ export const Dashboard = () => {
     getStudents();
   }, []);
   return (
-    <div className="p-3">
+    <div className="p-3 dark:bg-gray-800">
       {selectedStudent && (
         <div
           className="font-bold cursor-pointer"
@@ -78,12 +77,12 @@ export const Dashboard = () => {
         <>
           <h1>Dashboard</h1>
           <div className="flex ">
-            <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 bg-white w-1/3">
+            <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 background w-1/3">
               <h3>Active students</h3>
               <h1>{students.length}</h1>
             </div>
 
-            <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 bg-white w-1/3">
+            <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 background w-1/3">
               <h3>% with entry this week</h3>
               <h1>
                 {(students.filter(
@@ -95,7 +94,7 @@ export const Dashboard = () => {
                 {" % "}
               </h1>
             </div>
-            <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 bg-white w-1/3">
+            <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 background w-1/3">
               <h3>Completion rate this week</h3>
               <h1>
                 {(students.filter((student) => {
@@ -112,7 +111,7 @@ export const Dashboard = () => {
               </h1>
             </div>
           </div>
-          <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 bg-white ">
+          <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 background ">
             <div>
               <h2>Recent activity</h2>
             </div>

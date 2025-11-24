@@ -68,8 +68,8 @@ const MainContent = () => {
           {menu.map((item) => (
             <h2
               key={item.id}
-              className={`p-2 hover:bg-gray-100 cursor-pointer rounded-lg ${
-                mode === item.id ? "hover:bg-red-500 bg-red-600 text-white" : ""
+              className={`p-2  cursor-pointer rounded-lg ${
+                mode === item.id ? "menured bg-red-600 text-white" : "menu"
               }`}
               onClick={() => setMode(item.id)}
             >
@@ -78,7 +78,7 @@ const MainContent = () => {
           ))}
         </div>
       </div>
-      <div className="bg-[#f7f7fb] w-full border-b-1 border-gray-200">
+      <div className="  w-full border-b-1 border-gray-200">
         {mode === "dashboard" && <Dashboard />}
         {mode === "students" && <Students />}
         {mode === "instructors" && <Instructors />}

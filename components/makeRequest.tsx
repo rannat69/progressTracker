@@ -181,7 +181,7 @@ export const MakeRequest = () => {
       <div id="toastContainer"></div>
       <h1>Make Request</h1>
 
-      <div className="flex flex-col bg-white border-1 border-gray-200 p-2 rounded-xl  gap-2">
+      <div className="flex flex-col background border-1 border-gray-200 p-2 rounded-xl  gap-2">
         <h3>Title</h3>
         <input
           type="text"

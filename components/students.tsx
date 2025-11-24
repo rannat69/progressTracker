@@ -93,7 +93,8 @@ export const Students = () => {
         return (
           student.team_memberships &&
           student.team_memberships.some(
-            (membership: { team_id: string; }) => membership.team_id === teamFilter
+            (membership: { team_id: string }) =>
+              membership.team_id === teamFilter
           )
         );
       });
@@ -136,7 +137,7 @@ export const Students = () => {
       return (
         student.team_memberships &&
         student.team_memberships.some(
-          (membership: { team_id: string; }) => membership.team_id === value
+          (membership: { team_id: string }) => membership.team_id === value
         )
       );
     });
@@ -164,12 +165,12 @@ export const Students = () => {
             <input
               type="text"
               placeholder="Filter by name"
-              className="my-4 border-1 border-gray-200 p-2 rounded-xl bg-white"
+              className="my-4 border-1 border-gray-200 p-2 rounded-xl input"
               onChange={(e) => handleFilterName(e.target.value)}
             />
 
             <select
-              className="my-4 border-1 border-gray-200 p-2 rounded-xl bg-white"
+              className="my-4 border-1 border-gray-200 p-2 rounded-xl input"
               onChange={(e) => handleFilterTeam(e.target.value)}
             >
               <option value={""}>All teams</option>
