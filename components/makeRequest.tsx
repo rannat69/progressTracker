@@ -36,8 +36,6 @@ export const MakeRequest = () => {
     const fetchTeams = async () => {
       const teamsRes = await getAllTeams();
       if (teamsRes) {
-        console.log("teamsRes", teamsRes);
-
         setTeams(teamsRes);
 
         setTeam(teamsRes[0].id);

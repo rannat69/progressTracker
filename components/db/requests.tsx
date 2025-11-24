@@ -122,11 +122,15 @@ export async function createRequestItems(requestId: string, items: any) {
   }
 }
 
-export async function updateRequestStatus(id: any, email: any, status: any) {
+export async function updateRequestStatus(
+  id: any,
+  validator_id: any,
+  status: any
+) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("requests")
-    .update({ status: status,  })
+    .update({ status: status, request_validator_id: validator_id })
     .eq("id", id)
     .select();
 
