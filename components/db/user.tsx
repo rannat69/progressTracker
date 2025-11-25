@@ -22,7 +22,7 @@ export async function login(email: string, password: string) {
 
   console.log("hash", hash);
 */
-  function verifyPassword(password:string , userHashedPassword:string) {
+  function verifyPassword(password: string, userHashedPassword: string) {
     return new Promise((resolve, reject) => {
       bcrypt.compare(password, userHashedPassword, (err, result) => {
         if (err) {
@@ -87,23 +87,113 @@ export async function login(email: string, password: string) {
 }
 
 export async function signup(formData: FormData) {
+  console.log("formData", formData);
+
   const supabase = await createClient();
+  let newId = null;
+  // create student or instructor
+  if (formData.role === "student") {
+    const { data: student, error } = await supabase
+      .from("students")
+      .insert([
+        {
+          full_name: formData.firstName + " " + formData.lastName,
+          email: formData.email,
+        },
+      ])
+      .select();
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
+    if (student) {
+      newId = student[0].id;
+    }
 
-  const { error } = await supabase.auth.signUp(data);
+    if (error) {
+      console.error("error", error);
 
-  if (error) {
-    redirect("/error");
+      redirect("/error");
+    }
+  } else if (formData.role === "instructor") {
+    const { data: instructor, error } = await supabase
+      .from("instructors")
+      .insert([
+        {
+          full_name: formData.firstName + " " + formData.lastName,
+          email: formData.email,
+        },
+      ])
+      .select();
+
+    if (instructor) {
+      newId = instructor[0].id;
+    }
+
+    if (error) {
+      console.error("error", error);
+
+      redirect("/error");
+    }
   }
 
-  revalidatePath("/", "layout");
-  redirect("/account");
+  // create record in user
+
+  if (newId) {
+    // if student, create record in team_memberships
+
+    if (formData.role === "student") {
+      const { data: team, error } = await supabase
+        .from("team_memberships")
+        .insert([
+          {
+            student_id: newId,
+            team_id: formData.team,
+            role_in_team: "member",
+          },
+        ])
+        .select();
+
+      if (error) {
+        console.error("error", error);
+        redirect("/error");
+      }
+    }
+
+    if (formData.role === "instructor") {
+      const { data: team, error } = await supabase
+        .from("team_instructors")
+        .insert([
+          {
+            instructor_id: newId,
+            team_id: formData.team,
+          },
+        ])
+        .select();
+
+      if (error) {
+        console.error("error", error);
+        redirect("/error");
+      }
+    }
+
+    const { data: user, error } = await supabase
+      .from("users")
+      .insert([
+        {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+          role: "USER",
+          instructor_id: formData.role === "instructor" ? newId : null,
+          student_id: formData.role === "student" ? newId : null,
+        },
+      ])
+      .select();
+
+    if (error) {
+      console.error("error", error);
+      redirect("/error");
+    }
+  }
 }
 
 export async function getUserFromEmail(email: string) {

@@ -1,8 +1,8 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { login, signup } from "../components/db/user";
-import { get } from "http";
+import { login } from "../components/db/user";
+
 import { useRouter } from "next/navigation";
 import { getSessionId } from "@/components/db/sessions";
 
@@ -52,6 +52,10 @@ export default function LoginPage() {
     }
   };
 
+  function handleSignup(): void {
+    router.push(`/signup`);
+  }
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className="flex flex-col items-center mt-50">
@@ -79,6 +83,10 @@ export default function LoginPage() {
               Log in
             </button>
             {error && <p className="error">{error}</p>}
+
+            <div className="button" onClick={() => handleSignup()}>
+              Sign up
+            </div>
           </div>
         </form>
       </div>
