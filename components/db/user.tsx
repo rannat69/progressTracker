@@ -86,7 +86,7 @@ export async function login(email: string, password: string) {
   //redirect(`/main?sessionId=${randNumber}`);
 }
 
-export async function signup(formData: FormData) {
+export async function signup(formData: any) {
   console.log("formData", formData);
 
   const supabase = await createClient();
@@ -99,6 +99,7 @@ export async function signup(formData: FormData) {
         {
           full_name: formData.firstName + " " + formData.lastName,
           email: formData.email,
+          status: "active",
         },
       ])
       .select();
@@ -174,6 +175,8 @@ export async function signup(formData: FormData) {
       }
     }
 
+    const hash = await bcrypt.hash(formData.password, 10);
+
     const { data: user, error } = await supabase
       .from("users")
       .insert([
@@ -181,7 +184,7 @@ export async function signup(formData: FormData) {
           first_name: formData.firstName,
           last_name: formData.lastName,
           email: formData.email,
-          password: formData.password,
+          password: hash,
           role: "USER",
           instructor_id: formData.role === "instructor" ? newId : null,
           student_id: formData.role === "student" ? newId : null,

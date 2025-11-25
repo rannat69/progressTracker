@@ -105,10 +105,10 @@ export default function LoginPage() {
 
     setError("Sign up complete");
     setIsLoading(false);
-    //    router.push(`/`);
+    router.push(`/`);
   };
 
-  function handleTeam(value): void {
+  function handleTeam(value: string): void {
     console.log("value", value);
 
     setTeam(value);
@@ -117,8 +117,8 @@ export default function LoginPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className="flex flex-col items-center mt-50">
-        <h1 className="p-10">Welcome to Progress Tracker</h1>
-
+        <h1 className="p-5">Welcome to Progress Tracker</h1>
+        <h1 className="p-5">Sign Up</h1>
         <form onSubmit={handleSignup}>
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">
