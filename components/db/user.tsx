@@ -7,6 +7,13 @@ import { createClient } from "@/utils/supabase/server";
 
 import bcrypt from "bcrypt";
 
+export async function getAllUsers() {
+  const supabase = await createClient();
+  const users = await supabase.from("users").select("*");
+
+  return users;
+}
+
 export async function login(email: string, password: string) {
   const supabase = await createClient();
 

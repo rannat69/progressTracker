@@ -6,7 +6,7 @@ import { Students } from "@/components/students";
 import { Instructors } from "@/components/instructors";
 import { Courses } from "@/components/courses";
 import { Teams } from "@/components/teams";
-import { Settings } from "@/components/settings";
+import { Settings, UserManagement } from "@/components/userManagement";
 import { Reports } from "@/components/reports";
 import { LogOut } from "@/components/logOut";
 import { getSessionId } from "@/components/db/sessions";
@@ -27,7 +27,7 @@ const MainContent = () => {
       { title: "Courses", id: "courses" },
       { title: "Teams", id: "teams" },
       { title: "Reports", id: "reports" },
-      { title: "Settings", id: "settings" },
+      { title: "User Management", id: "userManagement" },
       { title: "Make a request", id: "mkRequest" },
       { title: "Check outstanding requests", id: "chkRequests" },
       { title: "Log out", id: "logout" },
@@ -42,10 +42,11 @@ const MainContent = () => {
           const role = data[0].role;
           if (role === "USER") {
             menuTemp = menuTemp.filter(
-              (item) => item.id !== "settings" && item.id !== "chkRequests"
+              (item) =>
+                item.id !== "userManagement" && item.id !== "chkRequests"
             );
           } else if (role === "INSTRUCTOR") {
-            menuTemp = menuTemp.filter((item) => item.id !== "settings");
+            menuTemp = menuTemp.filter((item) => item.id !== "userManagement");
           }
           setMenu(menuTemp);
         }
@@ -85,7 +86,7 @@ const MainContent = () => {
         {mode === "courses" && <Courses />}
         {mode === "teams" && <Teams />}
         {mode === "reports" && <Reports />}
-        {mode === "settings" && <Settings />}
+        {mode === "userManagement" && <UserManagement />}
         {mode === "mkRequest" && <MakeRequest />}
         {mode === "chkRequests" && <CheckRequest />}
         {mode === "logout" && <LogOut />}
