@@ -217,3 +217,28 @@ export async function getUserFromEmail(email: string) {
 
   return userRes;
 }
+
+export async function updateUser(id: any, formData: any) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("users")
+    .update({
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      role: formData.role,
+    })
+    .eq("id", id)
+    .select();
+
+  if (error) {
+    console.error("Error updating user:", error);
+    return error; // Handle the error as needed
+  }
+
+  if (data && data.length > 0) {
+    return data;
+  } else {
+    return null;
+  }
+}

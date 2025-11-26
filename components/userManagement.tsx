@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAllUsers } from "./db/user";
+import { getAllUsers, updateUser } from "./db/user";
 import { getAllTeams } from "./db/teams";
 
 export const UserManagement = () => {
@@ -8,10 +8,6 @@ export const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [teams, setTeams] = useState<any[]>([]);
   const [error, setError] = useState("");
-
-  const [role, setRole] = useState("student");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -40,53 +36,70 @@ export const UserManagement = () => {
     getUsers();
   }, []);
 
-  const handleUpdateUser = async () => {
-    // Logic to accept the request (e.g., update the request status in your database)
+  const Popup = ({ user, onClose }: { user: any; onClose: () => void }) => {
+    const [firstName, setFirstName] = useState(user.first_name);
+    const [lastName, setLastName] = useState(user.last_name);
+    const [role, setRole] = useState(user.role);
 
-    setError("");
+    useEffect(() => {
+      setFirstName(user.first_name);
+      setLastName(user.last_name);
+      setRole(user.role);
+    }, [user]);
 
-    if (!selectedUser) {
-      return null;
-    }
-    console.log("Updating user:", selectedUser);
+    const handleUpdateUser = async () => {
+      // Logic to accept the request (e.g., update the request status in your database)
 
-    if (!firstName || !lastName) {
-      setError("First name and last name are required.");
-      return;
-    }
+      setError("");
 
-    setSelectedUser(null); // Close the popup
-  };
+      if (!selectedUser) {
+        return null;
+      }
+      console.log("Updating user:", selectedUser);
 
-  const Popup = ({
-    user,
-    onClose,
-    onUpdate,
-  }: {
-    user: any;
-    onClose: () => void;
-    onUpdate: () => void;
-  }) => {
-    console.log("user", user);
+      if (!firstName || !lastName) {
+        setError("First name and last name are required.");
+        return;
+      }
 
-    setFirstName(user.first_name);
-    setLastName(user.last_name);
-    setRole(user.role);
+      user.first_name = firstName;
+      user.last_name = lastName;
+
+      if (user.role != "ADMIN") {
+        user.role = role;
+      }
+
+      // update table User
+
+      await updateUser(user.id, {
+        firstName,
+        lastName,
+        role: user.role !== "ADMIN" ? role : user.role,
+      });
+
+      setSelectedUser(null); // Close the popup
+    };
 
     return (
       <div className="fixed inset-0 bg-black/50  bg-opacity-5 flex justify-center items-center">
         <div className="bg-white p-5 rounded-lg shadow-lg">
-          <h2>{user.first_name + " " + user.last_name}</h2>
-          First name
-          <input
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-          />
-          Last name{" "}
-          <input
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-          />
+          <div>
+            <div>{user.first_name + " " + user.last_name}</div>
+            First name{" "}
+            <input
+              value={firstName}
+              className="border-1 rounded-xl p-1"
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </div>
+          <div>
+            Last name{" "}
+            <input
+              value={lastName}
+              className="border-1 rounded-xl p-1"
+              onChange={(e) => setLastName(e.target.value)}
+            />
+          </div>
           <label htmlFor="team" className="w-40">
             Role:
           </label>
@@ -95,9 +108,11 @@ export const UserManagement = () => {
             id="role"
             value={role}
             onChange={(e) => {
+              console.log("e.target.value", e.target.value);
               const newRole = e.target.value;
               setRole(newRole);
-              }}
+            }}
+            disabled={user.role === "ADMIN"} // Disable if the user role is ADMIN
           >
             <option value="USER">User</option>
             <option value="INSTRUCTOR">Instructor</option>
@@ -107,7 +122,7 @@ export const UserManagement = () => {
           <div className="ml-2 border border-gray-300 p-2 rounded flex flex-col gap-3"></div>
           <div className="mt-4">
             <button
-              onClick={onUpdate}
+              onClick={() => handleUpdateUser()}
               className="mr-2 bg-green-500 text-white p-2 rounded cursor-pointer"
             >
               Update
@@ -165,11 +180,7 @@ export const UserManagement = () => {
       </div>
 
       {selectedUser && (
-        <Popup
-          user={selectedUser}
-          onClose={() => setSelectedUser(null)}
-          onUpdate={handleUpdateUser}
-        />
+        <Popup user={selectedUser} onClose={() => setSelectedUser(null)} />
       )}
     </div>
   );

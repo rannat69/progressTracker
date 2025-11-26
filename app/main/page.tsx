@@ -6,7 +6,7 @@ import { Students } from "@/components/students";
 import { Instructors } from "@/components/instructors";
 import { Courses } from "@/components/courses";
 import { Teams } from "@/components/teams";
-import { Settings, UserManagement } from "@/components/userManagement";
+import {  UserManagement } from "@/components/userManagement";
 import { Reports } from "@/components/reports";
 import { LogOut } from "@/components/logOut";
 import { getSessionId } from "@/components/db/sessions";
