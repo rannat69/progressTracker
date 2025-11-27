@@ -30,9 +30,13 @@ export const MakeRequest = () => {
 
   const [items, setItems] = useState<any[]>([]);
 
+  const [loading, setLoading] = useState<boolean>(true);
+
   const router = useRouter();
 
   useEffect(() => {
+    setLoading(true);
+
     const fetchTeams = async () => {
       const teamsRes = await getAllTeams();
       if (teamsRes) {
@@ -40,6 +44,8 @@ export const MakeRequest = () => {
 
         setTeam(teamsRes[0].id);
       }
+
+      setLoading(false);
     };
 
     // set items with 3 records
@@ -96,6 +102,7 @@ export const MakeRequest = () => {
           console.log("teamsTemp", teamsTemp);
           setTeams(teamsTemp);
         }
+        setLoading(false);
       } else {
         fetchTeams();
       }
@@ -221,141 +228,153 @@ export const MakeRequest = () => {
 
   return (
     <div className="p-3">
-      <div id="toastContainer"></div>
-      <h1>Make Request</h1>
+      {loading ? (
+        <h2>Loading ... </h2>
+      ) : teams.length > 0 ? (
+        <>
+          <div id="toastContainer"></div>
+          <h1>Make Request</h1>
 
-      <div className="flex flex-col background border-1 border-gray-200 p-2 rounded-xl  gap-2">
-        <h3>Title</h3>
-        <input
-          type="text"
-          placeholder="Request title"
-          className="border-1 border-gray-200 p-2 rounded-xl"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
+          <div className="flex flex-col background border-1 border-gray-200 p-2 rounded-xl gap-2">
+            <h3>Title</h3>
+            <input
+              type="text"
+              placeholder="Request title"
+              className="border-1 border-gray-200 p-2 rounded-xl"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
 
-        <h3>Description</h3>
-        <input
-          type="text"
-          placeholder="Request description"
-          className="border-1 border-gray-200 p-2 rounded-xl"
-          value={desc}
-          onChange={(e) => setDesc(e.target.value)}
-        />
+            <h3>Description</h3>
+            <input
+              type="text"
+              placeholder="Request description"
+              className="border-1 border-gray-200 p-2 rounded-xl"
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+            />
 
-        <h3>Team</h3>
-        <select
-          id="requestTeam"
-          className="border-1 border-gray-200 p-2 rounded-xl"
-          onChange={(e) => setTeam(e.target.value)}
-        >
-          {teams.map((team) => (
-            <option value={team.id}>{team.team_name}</option>
-          ))}
-        </select>
+            <h3>Team</h3>
+            <select
+              id="requestTeam"
+              className="border-1 border-gray-200 p-2 rounded-xl"
+              onChange={(e) => setTeam(e.target.value)}
+            >
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.team_name}
+                </option>
+              ))}
+            </select>
 
-        <h3>Date</h3>
-        <input
-          type="date"
-          placeholder="Request date"
-          className="border-1 border-gray-200 p-2 rounded-xl"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+            <h3>Date</h3>
+            <input
+              type="date"
+              className="border-1 border-gray-200 p-2 rounded-xl"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
 
-        <h3>Items</h3>
-        <div className="m-5 flex flex-col gap-10">
-          {items.map((item, index) => (
-            <div key={item.id} className="flex flex-col gap-2">
-              <h4>Title</h4>
-              <input
-                type="text"
-                placeholder="Item title"
-                className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
-                value={item.title}
-                onChange={(e) => {
-                  const newItems = [...items];
-                  newItems[item.id].title = e.target.value;
-                  setItems(newItems);
-                }}
-              />
-              <h4>Description</h4>
-              <input
-                type="text"
-                placeholder="Item description"
-                className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
-                value={item.desc}
-                onChange={(e) => {
-                  const newItems = [...items];
-                  newItems[item.id].desc = e.target.value;
-                  setItems(newItems);
-                }}
-              />
-              <h4>Cost</h4>
-              <input
-                type="number"
-                placeholder="Item cost"
-                className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
-                value={item.cost}
-                onChange={(e) => {
-                  const newCost = Number(e.target.value);
+            <h3>Items</h3>
+            <div className="m-5 flex flex-col gap-10">
+              {items.map((item, index) => (
+                <div key={item.id} className="flex flex-col gap-2">
+                  <h4>Title</h4>
+                  <input
+                    type="text"
+                    placeholder="Item title"
+                    className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
+                    value={item.title}
+                    onChange={(e) => {
+                      const newItems = [...items];
+                      newItems[index].title = e.target.value;
+                      setItems(newItems);
+                    }}
+                  />
+                  <h4>Description</h4>
+                  <input
+                    type="text"
+                    placeholder="Item description"
+                    className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
+                    value={item.desc}
+                    onChange={(e) => {
+                      const newItems = [...items];
+                      newItems[index].desc = e.target.value;
+                      setItems(newItems);
+                    }}
+                  />
+                  <h4>Cost</h4>
+                  <input
+                    type="number"
+                    placeholder="Item cost"
+                    className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
+                    value={item.cost}
+                    onChange={(e) => {
+                      const newCost = Number(e.target.value);
 
-                  // Check if cost is numeric and > 0
-                  if (isNaN(newCost) || newCost <= 0) {
-                    showToast("Cost must be a positive number.", "error");
-                    return;
-                  }
+                      // Check if cost is numeric and > 0
+                      if (isNaN(newCost) || newCost <= 0) {
+                        showToast("Cost must be a positive number.", "error");
+                        return;
+                      }
 
-                  const newItems = [...items];
-                  newItems[index].cost = newCost; // Use index here
-                  setItems(newItems);
+                      const newItems = [...items];
+                      newItems[index].cost = newCost; // Use index here
+                      setItems(newItems);
 
-                  // Recalculate total cost
-                  const totalCost = newItems.reduce((sum, currItem) => {
-                    return sum + (currItem.cost || 0);
-                  }, 0);
-                  setCost(totalCost);
-                }}
-              />
-              <h4>Link</h4>
-              <input
-                type="text"
-                placeholder="Item link"
-                className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
-                value={item.link}
-                onChange={(e) => {
-                  const newItems = [...items];
-                  newItems[item.id].link = e.target.value;
-                  setItems(newItems);
-                }}
-              />
+                      // Recalculate total cost
+                      const totalCost = newItems.reduce((sum, currItem) => {
+                        return sum + (currItem.cost || 0);
+                      }, 0);
+                      setCost(totalCost);
+                    }}
+                  />
+                  <h4>Link</h4>
+                  <input
+                    type="text"
+                    placeholder="Item link"
+                    className="border-1 border-gray-200 p-2 rounded-xl w-1/4"
+                    value={item.link}
+                    onChange={(e) => {
+                      const newItems = [...items];
+                      newItems[index].link = e.target.value;
+                      setItems(newItems);
+                    }}
+                  />
 
-              <button
-                className="button w-1/6"
-                onClick={() => handleRemoveItem(item.id)}
-              >
-                Remove item
-              </button>
+                  <button
+                    className="button w-1/6"
+                    onClick={() => handleRemoveItem(item.id)}
+                  >
+                    Remove item
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <button className="button w-1/4" onClick={() => handleAddItem()}>
-          Add item
-        </button>
+            <button className="button w-1/4" onClick={() => handleAddItem()}>
+              Add item
+            </button>
 
-        <h3>Cost</h3>
-        <input
-          type="number"
-          placeholder="Request cost"
-          className="border-1 border-gray-200 p-2 rounded-xl"
-          value={cost}
-          onChange={(e) => setCost(Number(e.target.value))}
-        />
+            <h3>Cost</h3>
+            <input
+              type="number"
+              placeholder="Request cost"
+              className="border-1 border-gray-200 p-2 rounded-xl"
+              value={cost}
+              onChange={(e) => setCost(Number(e.target.value))}
+            />
 
-        <button className="buttonRed w-1/4" onClick={() => handleSaveRequest()}>
-          Save
-        </button>
-      </div>
+            <button
+              className="buttonRed w-1/4"
+              onClick={() => handleSaveRequest()}
+            >
+              Save
+            </button>
+          </div>
+        </>
+      ) : (
+        <h2>You are not part of any team. Please contact your admin.</h2>
+      )}
     </div>
   );
 };

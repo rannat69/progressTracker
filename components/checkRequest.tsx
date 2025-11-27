@@ -3,7 +3,8 @@ import { getAllRequests, updateRequestStatus } from "./db/requests";
 import { getTeamById, updateTeam } from "./db/teams";
 import { createTeamExpense } from "./db/teamExpenses";
 import { getSessionId } from "./db/sessions";
-import { getUserFromEmail } from "./db/user";
+import { getAvailableTeams, getUserFromEmail } from "./db/user";
+import { useRouter } from "next/navigation";
 
 export const CheckRequest = () => {
   // read data from supabase
@@ -16,6 +17,12 @@ export const CheckRequest = () => {
 
   const [error, setError] = useState("");
 
+  const [allowedTeams, setAllowedTeams] = useState<any[]>([]);
+
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+
+  const router = useRouter();
+
   useEffect(() => {
     setLoading(true);
 
@@ -23,7 +30,58 @@ export const CheckRequest = () => {
       const requestsTemp = await getAllRequests();
 
       if (requestsTemp) {
-        setRequests(requestsTemp);
+        const sessionId = sessionStorage.getItem("sessionId");
+
+        const dataSession = await getSessionId(sessionId);
+        let role = "";
+        let email = "";
+        if (!dataSession) {
+          router.push("/");
+        } else {
+          role = dataSession[0].role;
+          email = dataSession[0].user_email;
+        }
+
+        const dataUser = await getUserFromEmail(email);
+        if (
+          !dataUser ||
+          !dataUser.data ||
+          !Array.isArray(dataUser.data) ||
+          dataUser.data.length === 0
+        ) {
+          router.push("/");
+          return;
+        }
+
+        if (role != "ADMIN") {
+          const availableTeamsRes = await getAvailableTeams(dataUser.data[0]);
+
+          if (availableTeamsRes) {
+            console.log(availableTeamsRes);
+
+            let teamsTemp = [];
+
+            for (const avTeam of availableTeamsRes) {
+              teamsTemp.push(avTeam.teams);
+            }
+            console.log("teamsTemp", teamsTemp);
+
+            setAllowedTeams(teamsTemp);
+
+            if (requestsTemp) {
+              const filteredRequests = requestsTemp.filter((request) => {
+                return teamsTemp.some((team) => team.id === request.teams.id);
+              });
+
+              setRequests(filteredRequests);
+            }
+
+          } else {
+            setRequests([]);
+          }
+        } else {
+          setRequests(requestsTemp);
+        }
       }
 
       setLoading(false);
