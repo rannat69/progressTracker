@@ -17,10 +17,6 @@ export const CheckRequest = () => {
 
   const [error, setError] = useState("");
 
-  const [allowedTeams, setAllowedTeams] = useState<any[]>([]);
-
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
-
   const router = useRouter();
 
   useEffect(() => {
@@ -57,16 +53,11 @@ export const CheckRequest = () => {
           const availableTeamsRes = await getAvailableTeams(dataUser.data[0]);
 
           if (availableTeamsRes) {
-            console.log(availableTeamsRes);
-
             let teamsTemp = [];
 
             for (const avTeam of availableTeamsRes) {
               teamsTemp.push(avTeam.teams);
             }
-            console.log("teamsTemp", teamsTemp);
-
-            setAllowedTeams(teamsTemp);
 
             if (requestsTemp) {
               const filteredRequests = requestsTemp.filter((request) => {
@@ -75,7 +66,6 @@ export const CheckRequest = () => {
 
               setRequests(filteredRequests);
             }
-
           } else {
             setRequests([]);
           }
