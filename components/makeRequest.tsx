@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getAllTeams } from "./db/teams";
 import { getSessionId } from "./db/sessions";
 import { useRouter } from "next/navigation";
-import { getUserFromEmail } from "./db/user";
+import { getAvailableTeams, getUserFromEmail } from "./db/user";
 import { createRequest, createRequestItems } from "./db/requests";
 
 export const MakeRequest = () => {
@@ -42,8 +42,6 @@ export const MakeRequest = () => {
       }
     };
 
-    fetchTeams();
-
     // set items with 3 records
     const itemsTemp = [];
     for (let i = 0; i < 1; i++) {
@@ -57,6 +55,53 @@ export const MakeRequest = () => {
     }
 
     setItems(itemsTemp);
+
+    // get available teams for user
+
+    const getAvailableTeamsForUser = async () => {
+      const sessionId = sessionStorage.getItem("sessionId");
+
+      const dataSession = await getSessionId(sessionId);
+      let role = "";
+      let email = "";
+      if (!dataSession) {
+        router.push("/");
+      } else {
+        role = dataSession[0].role;
+        email = dataSession[0].user_email;
+      }
+
+      const dataUser = await getUserFromEmail(email);
+      if (
+        !dataUser ||
+        !dataUser.data ||
+        !Array.isArray(dataUser.data) ||
+        dataUser.data.length === 0
+      ) {
+        router.push("/");
+        return;
+      }
+
+      if (role != "ADMIN") {
+        const availableTeamsRes = await getAvailableTeams(dataUser.data[0]);
+
+        if (availableTeamsRes) {
+          console.log(availableTeamsRes);
+
+          let teamsTemp = [];
+
+          for (const avTeam of availableTeamsRes) {
+            teamsTemp.push(avTeam.teams);
+          }
+          console.log("teamsTemp", teamsTemp);
+          setTeams(teamsTemp);
+        }
+      } else {
+        fetchTeams();
+      }
+    };
+
+    getAvailableTeamsForUser();
   }, []);
 
   function handleAddItem() {
@@ -173,8 +218,6 @@ export const MakeRequest = () => {
 
     setItems(itemsTemp);
   }
-
-  function handleCost() {}
 
   return (
     <div className="p-3">

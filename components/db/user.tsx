@@ -218,6 +218,35 @@ export async function getUserFromEmail(email: string) {
   return userRes;
 }
 
+export async function getAvailableTeams(user: any) {
+  // get all teams
+  const supabase = await createClient();
+
+  if (user.instructor_id) {
+    // get records from team_instructors where instructor_id = user.instructor_id
+    const { data: teams, error } = await supabase
+      .from("team_instructors")
+      .select("*, teams (*)")
+      .eq("instructor_id", user.instructor_id);
+
+    if (teams) {
+      return teams;
+    }
+  }
+
+  if (user.student_id) {
+    // get records from team_instructors where instructor_id = user.instructor_id
+    const { data: teams, error } = await supabase
+      .from("team_memberships")
+      .select("*, teams (*)")
+      .eq("student_id", user.student_id);
+
+    if (teams) {
+      return teams.map((team: any) => team.team_id);
+    }
+  }
+}
+
 export async function updateUser(id: any, formData: any) {
   const supabase = await createClient();
 
