@@ -4,6 +4,7 @@ import { getSessionId } from "./db/sessions";
 import { useRouter } from "next/navigation";
 import { getAvailableTeams, getUserFromEmail } from "./db/user";
 import { createRequest, createRequestItems } from "./db/requests";
+import { handleExport, handleImport } from "./importRequest";
 
 export const MakeRequest = () => {
   const showToast = (message: string, type = "info", timeout = 3000) => {
@@ -233,8 +234,22 @@ export const MakeRequest = () => {
       ) : teams.length > 0 ? (
         <>
           <div id="toastContainer"></div>
-          <h1>Make Request</h1>
 
+          <div className="py-2">
+            <h1>Make Request</h1>
+
+            <div className="flex w-full justify-end gap-3">
+              <button className="button w-1/6" onClick={() => handleExport()}>
+                Get import template
+              </button>
+              Import requests
+              <input
+                type="file"
+                className="button w-1/6"
+                onChange={handleImport}
+              ></input>
+            </div>
+          </div>
           <div className="flex flex-col background border-1 border-gray-200 p-2 rounded-xl gap-2">
             <h3>Title</h3>
             <input
