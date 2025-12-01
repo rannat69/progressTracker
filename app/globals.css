@@ -80,6 +80,12 @@ h3 {
   font-weight: bold;
 }
 
+.success {
+  font-size: larger;
+  font-weight: bold;
+  color: green;
+}
+
 .error {
   font-size: larger;
   font-weight: bold;

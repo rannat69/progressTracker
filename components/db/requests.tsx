@@ -50,6 +50,34 @@ export async function getAllRequestItemsForRequest(id: string) {
   }
 }
 
+// get request where created_at is less than one minute ago with title and description
+export async function getRecentRequests(title: string, description: string) {
+  const supabase = await createClient();
+
+  const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString(); // Calculate the timestamp for one minute ago
+
+  const { data, error } = await supabase
+    .from("requests")
+    .select(
+      `
+      id,
+      title,
+      description,
+      created_at
+    `
+    )
+    .gte("created_at", oneMinuteAgo) // Use gte to get requests made in the last minute
+    .eq("title", title)
+    .eq("description", description);
+
+  if (error) {
+    console.error("Error fetching recent requests:", error);
+    return null; // Handle the error as needed
+  }
+
+  return data.length > 0 ? data : null; // Simplified return statement
+}
+
 export async function createRequest(
   cost: any,
   date: any,
@@ -77,7 +105,7 @@ export async function createRequest(
     .select();
 
   if (error) {
-    console.error("Error creating team:", error);
+    console.error("Error creating request:", error);
     return error; // Handle the error as needed
   }
 

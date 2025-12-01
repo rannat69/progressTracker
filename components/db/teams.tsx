@@ -13,6 +13,20 @@ export async function getAllTeams() {
   }
 }
 
+export async function getTeamIdFromName(team_name: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("teams")
+    .select("*")
+    .eq("team_name", team_name);
+  if (data && data.length > 0) {
+    return data;
+  } else {
+    return null;
+  }
+}
+
 export async function getAllTeamsInfo() {
   const supabase = await createClient();
 

@@ -227,6 +227,16 @@ export const MakeRequest = () => {
     setItems(itemsTemp);
   }
 
+  async function handleImportCall(e: React.ChangeEvent<HTMLInputElement>) {
+    const importRes = await handleImport(e);
+
+    if (importRes) {
+      showToast("Import successful.", "success");
+    } else {
+      showToast("Import failed.", "error");
+    }
+  }
+
   return (
     <div className="p-3">
       {loading ? (
@@ -246,7 +256,7 @@ export const MakeRequest = () => {
               <input
                 type="file"
                 className="button w-1/6"
-                onChange={handleImport}
+                onChange={handleImportCall}
               ></input>
             </div>
           </div>

@@ -5,6 +5,14 @@ import React, { useState } from "react";
 
 import * as XLSX from "xlsx";
 import ExcelJS, { Workbook } from "exceljs";
+import {
+  createRequest,
+  createRequestItems,
+  getRecentRequests,
+} from "./db/requests";
+import { getTeamIdFromName } from "./db/teams";
+import { getSessionId } from "./db/sessions";
+import { getUserFromEmail } from "./db/user";
 
 export async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
   // Open file from local drive.
@@ -34,8 +42,15 @@ export async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
 
     // Check for missing required fields
     if (!item.title || !item.item_title) {
-      errors.push("Error: Missing required fields for a course");
-      return false;
+      errors.push("Error: Missing title or item title");
+    }
+
+    if (item.total_cost <= 0) {
+      errors.push("Error: Total cost must be positive");
+    }
+
+    if (item.item_cost <= 0) {
+      errors.push("Error: Item cost must be positive");
     }
 
     // Check for invalid properties
@@ -43,9 +58,15 @@ export async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
     for (const key of courseKeys) {
       if (!validKeys.includes(key)) {
         errors.push(`Error: Invalid property "${key}" found in course object.`);
-        return false;
       }
     }
+
+    console.log("errors", errors);
+
+    if (errors && errors.length > 0) {
+      return false;
+    }
+
     return true;
   };
 
@@ -61,51 +82,111 @@ export async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
       const sheetDataRequest: any[] = XLSX.utils.sheet_to_json(sheet);
 
       for (const item of sheetDataRequest) {
-        console.log(item);
-
         // if id is present, update
         if (validateRequest(item)) {
           // if id not present, create
-          createCourse(item);
+          const excelRes = await createRequestFromExcel(item);
+
+          if (excelRes) {
+            console.log("Request created successfully.");
+          } else {
+            console.error("Request error.");
+            return false;
+          }
         } else {
-          break;
+          return false;
         }
       }
-
-      if (errors.length > 0) {
-      } else {
-      }
-
     }
   };
   reader.readAsArrayBuffer(file);
+
+  return true;
 }
 
-const createRequest = async (courseData: Course) => {
+const createRequestFromExcel = async (requestData: any) => {
   try {
-    console.log("create course, ", courseData);
+    const sessionId = sessionStorage.getItem("sessionId");
 
-    const response = await fetch("/api/course/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const dataSession = await getSessionId(sessionId);
+    let role = "";
+    let email = "";
+    if (!dataSession) {
+      return null;
+    } else {
+      role = dataSession[0].role;
+      email = dataSession[0].user_email;
+    }
+
+    // create request and item request
+
+    const team = await getTeamIdFromName(requestData.team);
+
+    if (!team) {
+      console.error("Team not found");
+      return null;
+    }
+
+    const dataUser = await getUserFromEmail(email);
+    if (
+      !dataUser ||
+      !dataUser.data ||
+      !Array.isArray(dataUser.data) ||
+      dataUser.data.length === 0
+    ) {
+      console.error("Email user not found");
+      return null;
+    }
+
+    // search for an existing request with same title and description from one minute ago
+    const recentRequestRes = await getRecentRequests(
+      requestData.title,
+      requestData.description
+    );
+
+    let requestId;
+
+    if (recentRequestRes && recentRequestRes.length > 0) {
+      // if already exists, do not recreate request, add item to existing
+      requestId = recentRequestRes[0].id;
+    } else {
+      // make an insert into table requests in supabase
+      const createRequestRes = await createRequest(
+        requestData.total_cost,
+        new Date().toISOString().split("T")[0],
+        team[0].id,
+        requestData.title,
+        requestData.description,
+        role,
+        (dataUser.data as any[])[0].id
+      );
+
+      if (!createRequestRes) {
+        console.error("Error creating request");
+        return null;
+      } else {
+        requestId = (createRequestRes as any[])[0].id;
+      }
+    }
+
+    const items = [
+      {
+        title: requestData.item_title,
+        description: requestData.item_description,
+        cost: requestData.item_cost,
+        link: requestData.item_link,
       },
-      body: JSON.stringify(courseData),
-    });
+    ];
 
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
+    if (!requestId) {
+      return false;
+    } else {
+      await createRequestItems(requestId, items);
+
+      return true;
     }
-
-    const data = await response.json();
-
-    if (data.error) {
-      setErrorMessage(data.error);
-    }
-
-    return data; // Return the newly created course ID or object
   } catch (error) {
-    console.error("Error adding course:", error);
+    console.error("Error adding request:", error);
     throw error; // Rethrow the error for handling in the caller
   }
 };
@@ -113,12 +194,8 @@ const createRequest = async (courseData: Course) => {
 export async function handleExport(): Promise<void> {
   // Read DB, then export in Excel file
 
-  console.log("handle export");
-
   // put students in an Excel file in a tab, and courses in another tab
   const workbook = new ExcelJS.Workbook();
-
-  console.log("workbook", workbook);
 
   createSheetStudent(workbook);
 
@@ -179,7 +256,22 @@ export async function handleExport(): Promise<void> {
             formulae: [0], // Ensures that the string length is greater than 0 (i.e., not empty)
             showInputMessage: true,
             promptTitle: "String Input",
-            prompt: "This field is mandatory; please enter a value",
+            prompt:
+              "This field is mandatory. If several lines have same title and description, only one request will be created.",
+            errorStyle: "error",
+            errorTitle: "Mandatory Field",
+            error: "This field cannot be empty",
+            showErrorMessage: true,
+          };
+
+          row.getCell("B").dataValidation = {
+            type: "textLength",
+            operator: "greaterThan",
+            formulae: [0], // Ensures that the string length is greater than 0 (i.e., not empty)
+            showInputMessage: true,
+            promptTitle: "String Input",
+            prompt:
+              "This field is mandatory. If several lines have same title and description, only one request will be created.",
             errorStyle: "error",
             errorTitle: "Mandatory Field",
             error: "This field cannot be empty",
