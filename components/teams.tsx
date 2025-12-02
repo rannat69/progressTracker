@@ -37,7 +37,6 @@ export const Teams = () => {
     const getTeams = async () => {
       const teamsTemp = await getAllTeamsInfo();
 
-      console.log(teamsTemp);
 
       if (teamsTemp) {
         setTeams(teamsTemp);

@@ -110,7 +110,6 @@ export const CheckRequest = () => {
     const sessionId = sessionStorage.getItem("sessionId");
     const session = await getSessionId(sessionId);
     if (session) {
-      console.log(session[0].user_email);
 
       const user = await getUserFromEmail(session[0].user_email);
 
@@ -141,7 +140,6 @@ export const CheckRequest = () => {
     const sessionId = sessionStorage.getItem("sessionId");
     const session = await getSessionId(sessionId);
     if (session) {
-      console.log(session[0].user_email);
 
       const user = await getUserFromEmail(session[0].user_email);
 

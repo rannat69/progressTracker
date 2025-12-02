@@ -16,7 +16,6 @@ export const CourseDetail = (selectedCourse: any) => {
     const getStudentsList = async () => {
       const studentsTemp = await getStudentsInCourse(selectedCourse.id);
 
-      console.log(studentsTemp);
 
       if (studentsTemp) {
         setStudents(studentsTemp);

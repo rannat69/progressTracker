@@ -191,7 +191,6 @@ export const StudentDetail = (selectedStudent: any) => {
     let onePartial = false;
 
     for (const goal of goals.filter((g) => g.goal != "")) {
-      console.log("goal status", goal.status);
 
       if (goal.status != "achieved") {
         allAchieved = false;

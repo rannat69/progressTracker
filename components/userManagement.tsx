@@ -16,7 +16,6 @@ export const UserManagement = () => {
       try {
         const usersTemp = await getAllUsers();
 
-        console.log("usersTemp", usersTemp);
 
         if (usersTemp?.data) {
           setUsers(usersTemp.data);
@@ -108,7 +107,6 @@ export const UserManagement = () => {
             id="role"
             value={role}
             onChange={(e) => {
-              console.log("e.target.value", e.target.value);
               const newRole = e.target.value;
               setRole(newRole);
             }}

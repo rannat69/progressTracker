@@ -81,12 +81,11 @@ export const Students = () => {
   }, []);
 
   function handleFilterName(value: string): void {
-    console.log();
+
 
     setNameFilter(value);
     let filtered = studentsUnfiltered;
 
-    console.log("teamFilter", teamFilter);
 
     if (teamFilter != "") {
       filtered = filtered.filter((student) => {
@@ -117,7 +116,6 @@ export const Students = () => {
     setTeamFilter(value);
     let filtered = studentsUnfiltered;
 
-    console.log("nameFilter", nameFilter);
 
     if (nameFilter != "") {
       filtered = filtered.filter((student) => {

@@ -70,7 +70,7 @@ export async function login(email: string, password: string) {
         .eq("session_id", randNumber);
 
       console.log("error", error);
-      console.log("data", data);
+
       sessionData = data || [];
 
       if (error) {
@@ -94,8 +94,6 @@ export async function login(email: string, password: string) {
 }
 
 export async function signup(formData: any) {
-  console.log("formData", formData);
-
   const supabase = await createClient();
   let newId = null;
   // create student or instructor

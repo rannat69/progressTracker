@@ -16,7 +16,6 @@ export default function LoginPage() {
       if (sessionId && sessionId != "0") {
         const sessionRes = await getSessionId(Number(sessionId));
 
-        console.log(sessionRes);
 
         if (sessionRes) {
           router.push(`/main?sessionId=${sessionId}`);
@@ -35,8 +34,6 @@ export default function LoginPage() {
 
     if (email && password) {
       const loginRes = await login(email, password);
-
-      console.log("login Res", loginRes);
 
       if (!loginRes) {
         setError("Invalid email or password");

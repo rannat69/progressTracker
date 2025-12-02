@@ -22,7 +22,6 @@ export default function LoginPage() {
       if (teamsRes) {
         setTeams(teamsRes);
 
-        console.log("teamsRes", teamsRes[0].id);
 
         setTeam(teamsRes[0].id);
 
@@ -46,7 +45,6 @@ export default function LoginPage() {
     const password = formData.get("password") as string;
     const password2 = formData.get("password2") as string;
 
-    console.log("role", role);
 
     if (!firstName || firstName === "") {
       setError("First name is required");
@@ -109,7 +107,6 @@ export default function LoginPage() {
   };
 
   function handleTeam(value: string): void {
-    console.log("value", value);
 
     setTeam(value);
   }

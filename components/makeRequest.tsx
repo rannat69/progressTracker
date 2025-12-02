@@ -93,14 +93,12 @@ export const MakeRequest = () => {
         const availableTeamsRes = await getAvailableTeams(dataUser.data[0]);
 
         if (availableTeamsRes) {
-          console.log(availableTeamsRes);
 
           let teamsTemp = [];
 
           for (const avTeam of availableTeamsRes) {
             teamsTemp.push(avTeam.teams);
           }
-          console.log("teamsTemp", teamsTemp);
           setTeams(teamsTemp);
         }
         setLoading(false);
@@ -145,7 +143,6 @@ export const MakeRequest = () => {
     // check team budget
     const teamInfo = teams.find((t) => t.id === team);
 
-    console.log("team", team);
 
     if (teamInfo) {
       if (teamInfo.budget < cost) {
