@@ -12,7 +12,17 @@ export async function getAllRequests() {
     ),
     requests_items (
       *
-    )
+    ),
+    author: users!request_author_id (
+      first_name,
+      last_name,
+      email
+    ),
+    validator: users!request_validator_id (
+      first_name,
+      last_name,
+      email
+    )  
   `);
 
   if (error) {

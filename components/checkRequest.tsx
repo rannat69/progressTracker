@@ -110,7 +110,6 @@ export const CheckRequest = () => {
     const sessionId = sessionStorage.getItem("sessionId");
     const session = await getSessionId(sessionId);
     if (session) {
-
       const user = await getUserFromEmail(session[0].user_email);
 
       if (user) {
@@ -140,7 +139,6 @@ export const CheckRequest = () => {
     const sessionId = sessionStorage.getItem("sessionId");
     const session = await getSessionId(sessionId);
     if (session) {
-
       const user = await getUserFromEmail(session[0].user_email);
 
       if (user) {
@@ -220,7 +218,9 @@ export const CheckRequest = () => {
             <th>Name</th>
             <th>Description</th>
             <th>Start date</th> <th>Cost</th>
+            <th>Requested by</th>
             <th>Status</th>
+            <th>Addressed by</th>
           </tr>
         </thead>
         <tbody>
@@ -241,18 +241,29 @@ export const CheckRequest = () => {
                 <td>{request.date}</td>
                 <td>{request.cost}</td>
                 <td>
+                  {request.author.first_name + " " + request.author.last_name}
+                </td>
+                <td>
                   <div
                     className={
                       request.status === "Accepted"
-                        ? "w-1/4 p-2 rounded-xl text-white bg-green-600"
+                        ? "w-1/2 p-2 rounded-xl text-white bg-green-600"
                         : request.status === "Declined"
-                        ? "w-1/4 p-2 rounded-xl text-white bg-red-500 "
+                        ? "w-1/2 p-2 rounded-xl text-white bg-red-500 "
                         : ""
                     }
                   >
                     {request.status}
                   </div>
                 </td>
+                <td>
+                  {request.validator
+                    ? request.validator.first_name +
+                      " " +
+                      request.validator.last_name
+                    : ""}
+                </td>
+       
               </tr>
             ))}
         </tbody>

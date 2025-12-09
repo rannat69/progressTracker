@@ -8,6 +8,7 @@ import { getSessionId } from "@/components/db/sessions";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   useEffect(() => {
     // read from supabase
@@ -15,7 +16,6 @@ export default function LoginPage() {
       const sessionId = sessionStorage.getItem("sessionId");
       if (sessionId && sessionId != "0") {
         const sessionRes = await getSessionId(Number(sessionId));
-
 
         if (sessionRes) {
           router.push(`/main?sessionId=${sessionId}`);
@@ -26,6 +26,8 @@ export default function LoginPage() {
   }, []);
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    setError("");
+    setIsLoading(true);
     event.preventDefault(); // Empêche le rechargement de la page
 
     const formData = new FormData(event.currentTarget);
@@ -46,7 +48,10 @@ export default function LoginPage() {
       }
     } else {
       console.log("error");
+      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
   function handleSignup(): void {
@@ -76,14 +81,20 @@ export default function LoginPage() {
               type="password"
               required
             />
-            <button type="submit" className="button">
-              Log in
-            </button>
-            {error && <p className="error">{error}</p>}
 
-            <div className="button" onClick={() => handleSignup()}>
-              Sign up
-            </div>
+            {isLoading && <p>Loading...</p>}
+            {!isLoading && (
+              <>
+                {" "}
+                <button type="submit" className="button">
+                  Log in
+                </button>
+                {error && <p className="error">{error}</p>}
+                <div className="button" onClick={() => handleSignup()}>
+                  Sign up
+                </div>
+              </>
+            )}
           </div>
         </form>
       </div>
