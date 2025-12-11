@@ -122,7 +122,6 @@ export const MakeRequest = () => {
   }
 
   async function handleSaveRequest(): Promise<void> {
-    console.log("team", team);
 
     // check if cost is numeric and > 0
     if (isNaN(cost) || cost <= 0) {
@@ -192,8 +191,6 @@ export const MakeRequest = () => {
 
     const userId = dataUser.data[0].id;
 
-    console.log("team", team);
-
     // make an insert into table requests in supabase
     const createRequestRes = await createRequest(
       cost,
@@ -205,7 +202,6 @@ export const MakeRequest = () => {
       userId
     );
 
-    console.log("createRequestRes", createRequestRes);
 
     if (!createRequestRes) {
       showToast("Error creating request.", "error");

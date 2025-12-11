@@ -92,7 +92,7 @@ export const StudentDetail = (selectedStudent: any) => {
       }
 
       if (role === "INSTRUCTOR") {
-        console.log("dataUser", dataUser);
+     
         const availableTeamsRes = await getAvailableTeams(dataUser.data[0]);
 
         if (availableTeamsRes) {

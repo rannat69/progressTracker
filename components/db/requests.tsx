@@ -97,7 +97,6 @@ export async function createRequest(
   role: any,
   author: any
 ) {
-  console.log("createRequest", team);
 
   const supabase = await createClient();
   const { data, error } = await supabase
