@@ -3,6 +3,9 @@ import {
   enterStudentWeeklyEntry,
   getStudentWeeklyEntries,
 } from "./db/students";
+import { getSessionId } from "./db/sessions";
+import router from "next/router";
+import { getAvailableTeams, getUserFromEmail } from "./db/user";
 
 export const StudentDetail = (selectedStudent: any) => {
   selectedStudent = selectedStudent.selectedStudent;
@@ -39,6 +42,8 @@ export const StudentDetail = (selectedStudent: any) => {
   const [studentWeeklyEntries, setStudentWeeklyEntries] = useState<any[]>([]);
   const [progressGoal, setProgressGoal] = useState("");
 
+  const [canUpdate, setCanUpdate] = useState(false);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -57,6 +62,58 @@ export const StudentDetail = (selectedStudent: any) => {
         setStudentWeeklyEntries(studentsTemp);
       }
     };
+
+    const getAvailableTeamsForUser = async () => {
+      const sessionId = sessionStorage.getItem("sessionId");
+
+      const dataSession = await getSessionId(sessionId);
+      let role = "";
+      let email = "";
+      if (!dataSession) {
+        router.push("/");
+      } else {
+        role = dataSession[0].role;
+        email = dataSession[0].user_email;
+      }
+
+      const dataUser = await getUserFromEmail(email);
+      if (
+        !dataUser ||
+        !dataUser.data ||
+        !Array.isArray(dataUser.data) ||
+        dataUser.data.length === 0
+      ) {
+        router.push("/");
+        return;
+      }
+
+      if (role === "ADMIN") {
+        setCanUpdate(true);
+      }
+
+      if (role === "INSTRUCTOR") {
+        console.log("dataUser", dataUser);
+        const availableTeamsRes = await getAvailableTeams(dataUser.data[0]);
+
+        if (availableTeamsRes) {
+          // compare records of avaliableTeamsRes.team_id with selectedStudent.team_memberships.team_id
+          // if match, allow update
+
+          const availableTeamIds = availableTeamsRes.map(
+            (team) => team.team_id
+          );
+
+          const hasAccess = selectedStudent.team_memberships.some(
+            (membership) => availableTeamIds.includes(membership.team_id)
+          );
+          if (hasAccess) {
+            setCanUpdate(true);
+          }
+        }
+      }
+    };
+
+    getAvailableTeamsForUser();
 
     getStudents();
   }, []);
@@ -191,7 +248,6 @@ export const StudentDetail = (selectedStudent: any) => {
     let onePartial = false;
 
     for (const goal of goals.filter((g) => g.goal != "")) {
-
       if (goal.status != "achieved") {
         allAchieved = false;
       } else {
@@ -292,106 +348,110 @@ export const StudentDetail = (selectedStudent: any) => {
         <div></div>
       </div>
       <div className="flex gap-1">
-        <div className="background rounded-lg border border-gray-200 p-2 flex flex-col gap-2 w-1/2">
-          <h2>Quick add / edit weekly entry</h2>
-          <div className="flex justify-between">
-            <div>
-              <h3>Week (Monday)</h3>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => handleDateChange(e.target.value)}
-                className="border-1 rounded-lg"
-              />
-            </div>
+        {canUpdate && (
+          <div className="background rounded-lg border border-gray-200 p-2 flex flex-col gap-2 w-1/2">
+            <h2>Quick add / edit weekly entry</h2>
+            <div className="flex justify-between">
+              <div>
+                <h3>Week (Monday)</h3>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  className="border-1 rounded-lg"
+                />
+              </div>
 
-            <button
-              className="border-1 rounded-lg p-2 button "
-              onClick={() => {
-                handleDuplicateGoals();
-              }}
-            >
-              <h2> Duplicate last week's goals</h2>
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <h2>Goals</h2>
-            <div className="flex flex-wrap gap-4">
-              {goals.map((goal) => (
-                <div className="flex gap-2 w-[calc(50%-25px)]" key={goal.id}>
-                  <input
-                    type="text"
-                    className="text-xs border-1 border-gray-200 w-full"
-                    value={goal.goal}
-                    onChange={(e) => handleGoalChange(goal.id, e.target.value)} // Add appropriate change handler
-                  />
-                  <select
-                    className="border-1 border-gray-200 rounded-lg p-2"
-                    value={goal.status} // Assuming `status` is a property of `goal`
-                    onChange={(e) =>
-                      handleStatusChange(goal.id, e.target.value)
-                    } // Add appropriate change handler
-                  >
-                    <option value="not_achieved">Not achieved</option>
-                    <option value="partial">Partial</option>
-                    <option value="achieved">Achieved</option>
-                  </select>
-                </div>
-              ))}
-            </div>
-
-            <div>
               <button
-                className="button  border-1 rounded-lg p-2 w-full"
-                onClick={() => handleAddGoal()}
+                className="border-1 rounded-lg p-2 button "
+                onClick={() => {
+                  handleDuplicateGoals();
+                }}
               >
-                <h2>+ Add Goal</h2>
+                <h2> Duplicate last week's goals</h2>
               </button>
             </div>
-            <div>
-              {" "}
-              <h2>Progress Goals</h2>
-            </div>
-            <textarea
-              onChange={(e) => handleProgressGoalChange(e.target.value)}
-              value={progressGoal}
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your message here..."
-            ></textarea>
-          </div>
-          <div className="flex flex-col gap-2">
-            <h2>Next week goals</h2>
-            {nextWeekGoals.map((goal, index) => (
-              <input
-                key={index}
-                type="text"
-                value={goal.toString()}
-                onChange={(e) =>
-                  handleNextWeekGoalChange(index, e.target.value)
-                }
-                className="border-1  border-gray-200 w-full"
-              />
-            ))}
-            <button
-              className="button border-1 rounded-lg p-2 w-full"
-              onClick={() => handleAddNextWeekGoal()}
-            >
-              <h2>+ Add Next Week Goal</h2>
-            </button>
-          </div>
 
-          <div className="flex flex-col gap-2">
-            <button
-              className="buttonRed w-1/4"
-              onClick={() => handleSaveEntry()}
-            >
-              <h2>Save Entry</h2>
-            </button>
-            <div className="text-gray-500 text-sm">Create new entry</div>
-            {error && <p className="error">{error}</p>}
+            <div className="flex flex-col gap-2">
+              <h2>Goals</h2>
+              <div className="flex flex-wrap gap-4">
+                {goals.map((goal) => (
+                  <div className="flex gap-2 w-[calc(50%-25px)]" key={goal.id}>
+                    <input
+                      type="text"
+                      className="text-xs border-1 border-gray-200 w-full"
+                      value={goal.goal}
+                      onChange={(e) =>
+                        handleGoalChange(goal.id, e.target.value)
+                      } // Add appropriate change handler
+                    />
+                    <select
+                      className="border-1 border-gray-200 rounded-lg p-2"
+                      value={goal.status} // Assuming `status` is a property of `goal`
+                      onChange={(e) =>
+                        handleStatusChange(goal.id, e.target.value)
+                      } // Add appropriate change handler
+                    >
+                      <option value="not_achieved">Not achieved</option>
+                      <option value="partial">Partial</option>
+                      <option value="achieved">Achieved</option>
+                    </select>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <button
+                  className="button  border-1 rounded-lg p-2 w-full"
+                  onClick={() => handleAddGoal()}
+                >
+                  <h2>+ Add Goal</h2>
+                </button>
+              </div>
+              <div>
+                {" "}
+                <h2>Progress Goals</h2>
+              </div>
+              <textarea
+                onChange={(e) => handleProgressGoalChange(e.target.value)}
+                value={progressGoal}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter your message here..."
+              ></textarea>
+            </div>
+            <div className="flex flex-col gap-2">
+              <h2>Next week goals</h2>
+              {nextWeekGoals.map((goal, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  value={goal.toString()}
+                  onChange={(e) =>
+                    handleNextWeekGoalChange(index, e.target.value)
+                  }
+                  className="border-1  border-gray-200 w-full"
+                />
+              ))}
+              <button
+                className="button border-1 rounded-lg p-2 w-full"
+                onClick={() => handleAddNextWeekGoal()}
+              >
+                <h2>+ Add Next Week Goal</h2>
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <button
+                className="buttonRed w-1/4"
+                onClick={() => handleSaveEntry()}
+              >
+                <h2>Save Entry</h2>
+              </button>
+              <div className="text-gray-500 text-sm">Create new entry</div>
+              {error && <p className="error">{error}</p>}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="background rounded-lg border border-gray-200 p-2 flex flex-col gap-2 w-1/2">
           <h2>Weekly entries</h2>

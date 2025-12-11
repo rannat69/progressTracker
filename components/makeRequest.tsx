@@ -42,7 +42,6 @@ export const MakeRequest = () => {
       const teamsRes = await getAllTeams();
       if (teamsRes) {
         setTeams(teamsRes);
-
         setTeam(teamsRes[0].id);
       }
 
@@ -93,13 +92,13 @@ export const MakeRequest = () => {
         const availableTeamsRes = await getAvailableTeams(dataUser.data[0]);
 
         if (availableTeamsRes) {
-
           let teamsTemp = [];
 
           for (const avTeam of availableTeamsRes) {
             teamsTemp.push(avTeam.teams);
           }
           setTeams(teamsTemp);
+          setTeam(teamsTemp[0].id);
         }
         setLoading(false);
       } else {
@@ -123,6 +122,8 @@ export const MakeRequest = () => {
   }
 
   async function handleSaveRequest(): Promise<void> {
+    console.log("team", team);
+
     // check if cost is numeric and > 0
     if (isNaN(cost) || cost <= 0) {
       showToast("Cost must be a positive number.", "error");
@@ -142,7 +143,6 @@ export const MakeRequest = () => {
 
     // check team budget
     const teamInfo = teams.find((t) => t.id === team);
-
 
     if (teamInfo) {
       if (teamInfo.budget < cost) {
@@ -189,6 +189,11 @@ export const MakeRequest = () => {
       router.push("/");
       return;
     }
+
+    const userId = dataUser.data[0].id;
+
+    console.log("team", team);
+
     // make an insert into table requests in supabase
     const createRequestRes = await createRequest(
       cost,
@@ -197,8 +202,10 @@ export const MakeRequest = () => {
       title,
       desc,
       role,
-      (dataUser.data as any[])[0].id
+      userId
     );
+
+    console.log("createRequestRes", createRequestRes);
 
     if (!createRequestRes) {
       showToast("Error creating request.", "error");

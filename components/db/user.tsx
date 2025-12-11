@@ -19,6 +19,9 @@ export async function login(email: string, password: string) {
 
   const userRes = await supabase.from("users").select("*").eq("email", email);
 
+  console.log("userRes ", userRes);
+  console.log("userRes data", userRes.data);
+
   if (!userRes || !userRes.data || userRes.data.length === 0) {
     return false;
   }
