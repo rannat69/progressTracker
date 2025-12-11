@@ -104,7 +104,7 @@ export const StudentDetail = (selectedStudent: any) => {
           );
 
           const hasAccess = selectedStudent.team_memberships.some(
-            (membership) => availableTeamIds.includes(membership.team_id)
+            (membership:any) => availableTeamIds.includes(membership.team_id)
           );
           if (hasAccess) {
             setCanUpdate(true);
