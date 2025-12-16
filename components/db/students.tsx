@@ -16,9 +16,22 @@ export async function getAllStudents() {
 export async function getAllStudentsWeeklyEntries() {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("students")
-    .select("*, weekly_entries (*),     team_memberships (*)");
+  const { data, error } = await supabase.from("students").select(
+    `
+      *,
+      weekly_entries (*),
+      team_memberships (*),
+      students_courses (
+        *,
+        courses (
+          *,
+          instructors_courses (
+            *
+          )
+        )
+      )
+    `
+  );
   if (data && data.length > 0) {
     return data;
   } else {

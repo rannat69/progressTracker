@@ -1,6 +1,11 @@
+"use client";
+
 import { useEffect, useState } from "react";
 
 import { getAllTeams, getAllTeamsInfo } from "./db/teams";
+import router from "next/router";
+import { getSessionId } from "./db/sessions";
+import { getAvailableTeams, getUserFromEmail } from "./db/user";
 
 export const Teams = () => {
   // read data from supabase
@@ -35,11 +40,55 @@ export const Teams = () => {
     setLoading(true);
 
     const getTeams = async () => {
-      const teamsTemp = await getAllTeamsInfo();
-
+      let teamsTemp = await getAllTeamsInfo();
 
       if (teamsTemp) {
-        setTeams(teamsTemp);
+        const sessionId = sessionStorage.getItem("sessionId");
+
+        const dataSession = await getSessionId(sessionId);
+        let role = "";
+        let email = "";
+        if (!dataSession) {
+          router.push("/");
+        } else {
+          role = dataSession[0].role;
+          email = dataSession[0].user_email;
+        }
+
+        const dataUser = await getUserFromEmail(email);
+        if (
+          !dataUser ||
+          !dataUser.data ||
+          !Array.isArray(dataUser.data) ||
+          dataUser.data.length === 0
+        ) {
+          router.push("/");
+          return;
+        }
+
+        if (role != "ADMIN") {
+          const availableTeamsRes = await getAvailableTeams(dataUser.data[0]);
+
+          if (availableTeamsRes) {
+            let teamsTempAvailable = [];
+
+            for (const avTeam of availableTeamsRes) {
+              teamsTempAvailable.push(avTeam.teams);
+            }
+
+            //  Filter teamsTemp to only put teams in teamsTempAvailable
+            teamsTemp = teamsTemp.filter((team) => {
+              return teamsTempAvailable.some(
+                (teamTemp) => teamTemp.id === team.id
+              );
+            });
+
+            setTeams(teamsTemp);
+          }
+          setLoading(false);
+        } else {
+          setTeams(teamsTemp);
+        }
       }
       setLoading(false);
     };

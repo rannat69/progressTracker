@@ -6,7 +6,7 @@ import { Students } from "@/components/students";
 import { Instructors } from "@/components/instructors";
 import { Courses } from "@/components/courses";
 import { Teams } from "@/components/teams";
-import {  UserManagement } from "@/components/userManagement";
+import { UserManagement } from "@/components/userManagement";
 import { Reports } from "@/components/reports";
 import { LogOut } from "@/components/logOut";
 import { getSessionId } from "@/components/db/sessions";
@@ -43,7 +43,13 @@ const MainContent = () => {
           if (role === "USER") {
             menuTemp = menuTemp.filter(
               (item) =>
-                item.id !== "userManagement" && item.id !== "chkRequests"
+                item.id !== "userManagement" &&
+                item.id !== "chkRequests" &&
+                item.id !== "students" &&
+                item.id !== "instructors"&&
+                item.id !== "courses" &&
+             
+                item.id !== "reports"
             );
           } else if (role === "INSTRUCTOR") {
             menuTemp = menuTemp.filter((item) => item.id !== "userManagement");

@@ -1,6 +1,10 @@
 import { getAllStudentsWeeklyEntries } from "@/components/db/students";
 import { useEffect, useState } from "react";
 import { StudentDetail } from "./studentDetail";
+import { getUserFromEmail } from "./db/user";
+import { getSessionId } from "./db/sessions";
+import router from "next/router";
+import { getAllCoursesInstructor } from "./db/instructors";
 
 export const Dashboard = () => {
   // read data from supabase
@@ -27,7 +31,7 @@ export const Dashboard = () => {
     setLoading(true);
 
     const getStudents = async () => {
-      const studentsTemp = await getAllStudentsWeeklyEntries();
+      let studentsTemp = await getAllStudentsWeeklyEntries();
 
       if (studentsTemp) {
         for (const student of studentsTemp) {
@@ -51,6 +55,62 @@ export const Dashboard = () => {
               );
             }
           );
+
+          // Create a Date object
+          const date = new Date(student.updated_at);
+
+          // Get year, month, and day
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0"); // Adding 1 since months are zero-indexed
+          const day = String(date.getDate()).padStart(2, "0");
+
+          // Format to YYYY-MM-DD
+          const formattedDate = `${year}-${month}-${day}`;
+
+          student.updated_at = formattedDate;
+        }
+
+        // If not admin, restrict student list
+        const sessionId = sessionStorage.getItem("sessionId");
+
+        const dataSession = await getSessionId(sessionId);
+        let role = "";
+        let email = "";
+        if (!dataSession) {
+          router.push("/");
+        } else {
+          role = dataSession[0].role;
+          email = dataSession[0].user_email;
+        }
+
+        const dataUser = await getUserFromEmail(email);
+        if (
+          !dataUser ||
+          !dataUser.data ||
+          !Array.isArray(dataUser.data) ||
+          dataUser.data.length === 0
+        ) {
+          router.push("/");
+          return;
+        }
+
+        if (role != "ADMIN") {
+          // if student, show only their own data
+          if (dataUser.data[0].student_id) {
+            studentsTemp = studentsTemp.filter(
+              (student) => student.id === dataUser.data[0].student_id
+            );
+          } else if (dataUser.data[0].instructor_id) {
+
+            // Filter the studentsTemp array
+            studentsTemp = studentsTemp.filter(
+              (s) =>
+                s.students_courses[0]?.courses?.instructors_courses[0]
+                  ?.instructor_id === dataUser.data[0].instructor_id
+            );
+          } else {
+            studentsTemp = [];
+          }
         }
 
         setStudents(studentsTemp);

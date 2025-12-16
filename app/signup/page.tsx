@@ -22,7 +22,6 @@ export default function LoginPage() {
       if (teamsRes) {
         setTeams(teamsRes);
 
-
         setTeam(teamsRes[0].id);
 
         setRole("student");
@@ -44,7 +43,6 @@ export default function LoginPage() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const password2 = formData.get("password2") as string;
-
 
     if (!firstName || firstName === "") {
       setError("First name is required");
@@ -107,13 +105,13 @@ export default function LoginPage() {
   };
 
   function handleTeam(value: string): void {
-
     setTeam(value);
   }
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className="flex flex-col items-center mt-50">
+        <div className="cursor-pointer" onClick={() => router.push(`/`)}>Back</div>
         <h1 className="p-5">Welcome to Progress Tracker</h1>
         <h1 className="p-5">Sign Up</h1>
         <form onSubmit={handleSignup}>

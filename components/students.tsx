@@ -1,3 +1,5 @@
+"use client";
+
 import {
   getAllStudentsWeeklyEntries,
   getStudentTeam,
@@ -5,6 +7,9 @@ import {
 import { useEffect, useState } from "react";
 import { StudentDetail } from "./studentDetail";
 import { getAllTeams } from "./db/teams";
+import router from "next/router";
+import { getUserFromEmail } from "./db/user";
+import { getSessionId } from "./db/sessions";
 
 export const Students = () => {
   // read data from supabase
@@ -37,7 +42,7 @@ export const Students = () => {
     setLoading(true);
 
     const getStudents = async () => {
-      const studentsTemp = await getAllStudentsWeeklyEntries();
+      let studentsTemp = await getAllStudentsWeeklyEntries();
 
       if (studentsTemp) {
         for (const student of studentsTemp) {
@@ -71,6 +76,49 @@ export const Students = () => {
           setTeams(teamsRes);
         }
 
+        // If not admin, restrict student list
+        const sessionId = sessionStorage.getItem("sessionId");
+
+        const dataSession = await getSessionId(sessionId);
+        let role = "";
+        let email = "";
+        if (!dataSession) {
+          router.push("/");
+        } else {
+          role = dataSession[0].role;
+          email = dataSession[0].user_email;
+        }
+
+        const dataUser = await getUserFromEmail(email);
+        if (
+          !dataUser ||
+          !dataUser.data ||
+          !Array.isArray(dataUser.data) ||
+          dataUser.data.length === 0
+        ) {
+          router.push("/");
+          return;
+        }
+
+        if (role != "ADMIN") {
+          // if student, show only their own data
+          if (dataUser.data[0].student_id) {
+            studentsTemp = studentsTemp.filter(
+              (student) => student.id === dataUser.data[0].student_id
+            );
+          } else if (dataUser.data[0].instructor_id) {
+
+            // Filter the studentsTemp array
+            studentsTemp = studentsTemp.filter(
+              (s) =>
+                s.students_courses[0]?.courses?.instructors_courses[0]
+                  ?.instructor_id === dataUser.data[0].instructor_id
+            );
+          } else {
+            studentsTemp = [];
+          }
+        }
+
         setStudents(studentsTemp);
         setStudentsUnfiltered(studentsTemp);
         setLoading(false);
@@ -81,11 +129,8 @@ export const Students = () => {
   }, []);
 
   function handleFilterName(value: string): void {
-
-
     setNameFilter(value);
     let filtered = studentsUnfiltered;
-
 
     if (teamFilter != "") {
       filtered = filtered.filter((student) => {
@@ -115,7 +160,6 @@ export const Students = () => {
   function handleFilterTeam(value: string): void {
     setTeamFilter(value);
     let filtered = studentsUnfiltered;
-
 
     if (nameFilter != "") {
       filtered = filtered.filter((student) => {
