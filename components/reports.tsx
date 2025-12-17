@@ -2,14 +2,51 @@ import { getAllCourses } from "./db/courses";
 
 import ExcelJS, { Workbook } from "exceljs";
 import { getAllInstructors } from "./db/instructors";
-import { getAllTeams } from "./db/teams";
-import { getAllStudents } from "./db/students";
+import { getAllTeams, getAllTeamsInfo } from "./db/teams";
+import { getAllStudents, getAllStudentsWeeklyEntries } from "./db/students";
 import { getAllWeeklyEntries } from "./db/weeklyEntries";
 import { getAllTeamWeeklyEntries } from "./db/teamWeeklyEntries";
+import { useEffect, useState } from "react";
+import { getAvailableTeams, getUserFromEmail } from "./db/user";
+import { getSessionId } from "./db/sessions";
+import router from "next/router";
 
 export const Reports = () => {
+  const [role, setRole] = useState("");
+  const [user, setUser] = useState();
+  useEffect(() => {
+    const getUserInfo = async () => {
+      const sessionId = sessionStorage.getItem("sessionId");
+
+      const dataSession = await getSessionId(sessionId);
+      //let role = "";
+      let email = "";
+      if (!dataSession) {
+        router.push("/");
+      } else {
+        setRole(dataSession[0].role);
+        email = dataSession[0].user_email;
+      }
+
+      const dataUser = await getUserFromEmail(email);
+      if (
+        !dataUser ||
+        !dataUser.data ||
+        !Array.isArray(dataUser.data) ||
+        dataUser.data.length === 0
+      ) {
+        router.push("/");
+        return;
+      } else {
+        setUser(dataUser.data[0]);
+      }
+    };
+
+    getUserInfo();
+  }, []);
+
   async function handleStudents(): Promise<void> {
-    const students = await getAllStudents();
+    let students = await getAllStudentsWeeklyEntries();
 
     // Create Excel file with all courses
 
@@ -27,9 +64,24 @@ export const Reports = () => {
       { header: "notes", key: "notes", width: 50 },
       { header: "research_area", key: "research_area", width: 50 },
       { header: "supervisor", key: "supervisor", width: 50 },
-
+      { header: "course", key: "course", width: 50 },
+      { header: "weekly entry ", key: "we_date", width: 50 },
+      { header: "weekly entry goals", key: "we_goals", width: 50 },
+      { header: "weekly entry progeress", key: "we_progress", width: 50 },
+      { header: "weekly entry status", key: "we_status", width: 50 },
       // Add more columns as needed
     ];
+
+
+    if (user?.instructor_id) {
+      // Filter the studentsTemp array
+      students = students.filter(
+        (s) =>
+          s.students_courses[0]?.courses?.instructors_courses[0]
+            ?.instructor_id === user.instructor_id
+      );
+    }
+
 
     // Add content of instructors into worksheet
     if (students) {
@@ -45,6 +97,19 @@ export const Reports = () => {
           research_area: item.research_area,
           supervisor: item.supervisor,
         });
+
+        for (const studentCourse of item.students_courses) {
+          worksheet.addRow({ course: studentCourse.courses.name });
+        }
+
+        for (const studentWeek of item.weekly_entries) {
+          worksheet.addRow({
+            we_date: studentWeek.week_start_date,
+            we_goals: studentWeek.goals_set_json,
+            we_progress: studentWeek.progress_notes,
+            we_status: studentWeek.overall_status,
+          });
+        }
       }
     }
 
@@ -58,7 +123,7 @@ export const Reports = () => {
   }
 
   async function handleWeeklyEntries(): Promise<void> {
-    const weeklyEntries = await getAllWeeklyEntries();
+    const weeklyEntries = await getAllStudentsWeeklyEntries();
 
     // Create Excel file with all courses
 
@@ -114,56 +179,8 @@ export const Reports = () => {
     link.click();
   }
 
-  async function handleTeamWeeklyEntries(): Promise<void> {
-    const weeklyTeamEntries = await getAllTeamWeeklyEntries();
-
-    // Create Excel file with all courses
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Team Weekly entries");
-
-    // Define columns
-    worksheet.columns = [
-      { header: "id", key: "id", width: 20 },
-      { header: "team_id", key: "team_id", width: 50 },
-      { header: "week_start_date", key: "week_start_date", width: 50 },
-      { header: "team_goals_set_json", key: "team_goals_set_json", width: 50 },
-      { header: "team_overall_status", key: "team_overall_status", width: 50 },
-      { header: "team_progress_notes", key: "team_progress_notes", width: 50 },
-      {
-        header: "next_week_team_goals_json",
-        key: "next_week_team_goals_json",
-        width: 50,
-      },
-      // Add more columns as needed
-    ];
-
-    // Add content of instructors into worksheet
-    if (weeklyTeamEntries) {
-      for (const item of weeklyTeamEntries) {
-        worksheet.addRow({
-          id: item.id,
-          team_id: item.team_id,
-          week_start_date: item.week_start_date,
-          team_goals_set_json: item.team_goals_set_json,
-          team_overall_status: item.team_overall_status,
-          team_progress_notes: item.team_progress_notes,
-          next_week_team_goals_json: item.next_week_team_goals_json,
-        });
-      }
-    }
-
-    // Create a buffer and trigger download
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: "application/octet-stream" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "WeeklyTeamEntries.xlsx";
-    link.click();
-  }
-
   async function handleTeams(): Promise<void> {
-    const teams = await getAllTeams();
+    let teams = await getAllTeamsInfo();
 
     // Create Excel file with all courses
 
@@ -176,9 +193,27 @@ export const Reports = () => {
       { header: "team_name", key: "team_name", width: 50 },
       { header: "description", key: "description", width: 50 },
       { header: "budget", key: "budget", width: 50 },
-
+      { header: "expense title", key: "expense_title", width: 50 },
+      { header: "expense description", key: "expense_desc", width: 50 },
+      { header: "expense value", key: "expense_value", width: 50 },
+      { header: "student", key: "student", width: 50 },
+      { header: "student email", key: "student_email", width: 50 },
       // Add more columns as needed
     ];
+
+    // Get teams of the instructor
+    if (role != "ADMIN") {
+      const availableTeamsRes = await getAvailableTeams(user);
+
+      if (availableTeamsRes && teams) {
+        // filter teams where it contains only records where team.id = availableTeamsRes.id
+        teams = teams.filter((team) =>
+          availableTeamsRes.some(
+            (availableTeam) => availableTeam.team_id === team.id
+          )
+        );
+      }
+    }
 
     // Add content of instructors into worksheet
     if (teams) {
@@ -189,6 +224,21 @@ export const Reports = () => {
           description: item.description,
           budget: item.budget,
         });
+
+        for (const expense of item.team_expenses) {
+          worksheet.addRow({
+            expense_title: expense.title,
+            expense_desc: expense.description,
+            expense_value: expense.value,
+          });
+        }
+
+        for (const team_membership of item.team_memberships) {
+          worksheet.addRow({
+            student: team_membership.students.full_name,
+            student_email: team_membership.students.email,
+          });
+        }
       }
     }
 
@@ -199,10 +249,6 @@ export const Reports = () => {
     link.href = URL.createObjectURL(blob);
     link.download = "Teams.xlsx";
     link.click();
-  }
-
-  function handleTeamMemberships(): void {
-    throw new Error("Function not implemented.");
   }
 
   async function handleCourses(): Promise<void> {
@@ -298,35 +344,20 @@ export const Reports = () => {
           >
             Courses
           </h2>
-          <h2
-            className="border-1 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-200 p-2"
-            onClick={() => handleInstructors()}
-          >
-            Instructors
-          </h2>
-          <h2
-            className="border-1 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-200 p-2"
-            onClick={() => handleWeeklyEntries()}
-          >
-            Weekly entries
-          </h2>
+          {role != "ADMIN" && (
+            <h2
+              className="border-1 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-200 p-2"
+              onClick={() => handleInstructors()}
+            >
+              Instructors
+            </h2>
+          )}
+
           <h2
             className="border-1 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-200 p-2"
             onClick={() => handleTeams()}
           >
             Teams
-          </h2>
-          <h2
-            className="border-1 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-200 p-2"
-            onClick={() => handleTeamMemberships()}
-          >
-            Team memberships
-          </h2>{" "}
-          <h2
-            className="border-1 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-200 p-2"
-            onClick={() => handleTeamWeeklyEntries()}
-          >
-            Team weekly entries
           </h2>
         </div>
       </div>

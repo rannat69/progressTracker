@@ -235,7 +235,6 @@ export async function getAvailableTeams(user: any) {
     }
   }
 
-
   if (user.student_id) {
     // get records from team_instructors where instructor_id = user.instructor_id
     const { data: teams, error } = await supabase
