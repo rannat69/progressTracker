@@ -13,7 +13,7 @@ import router from "next/router";
 
 export const Reports = () => {
   const [role, setRole] = useState("");
-  const [user, setUser] = useState();
+  const [user, setUser] = useState<any>();
   useEffect(() => {
     const getUserInfo = async () => {
       const sessionId = sessionStorage.getItem("sessionId");
@@ -72,16 +72,16 @@ export const Reports = () => {
       // Add more columns as needed
     ];
 
-
-    if (user?.instructor_id) {
-      // Filter the studentsTemp array
-      students = students.filter(
-        (s) =>
-          s.students_courses[0]?.courses?.instructors_courses[0]
-            ?.instructor_id === user.instructor_id
-      );
+    if (role != "ADMIN") {
+      if (user?.instructor_id && students) {
+        // Filter the studentsTemp array
+        students = students.filter(
+          (s) =>
+            s.students_courses[0]?.courses?.instructors_courses[0]
+              ?.instructor_id === user.instructor_id
+        );
+      }
     }
-
 
     // Add content of instructors into worksheet
     if (students) {
@@ -119,63 +119,6 @@ export const Reports = () => {
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "Students.xlsx";
-    link.click();
-  }
-
-  async function handleWeeklyEntries(): Promise<void> {
-    const weeklyEntries = await getAllStudentsWeeklyEntries();
-
-    // Create Excel file with all courses
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Weekly entries");
-
-    // Define columns
-    worksheet.columns = [
-      { header: "id", key: "id", width: 20 },
-      { header: "student_id", key: "student_id", width: 50 },
-      { header: "week_start_date", key: "week_start_date", width: 50 },
-      { header: "goals_set_json", key: "goals_set_json", width: 50 },
-      {
-        header: "per_goal_status_json",
-        key: "per_goal_status_json",
-        width: 50,
-      },
-      { header: "overall_status", key: "overall_status", width: 50 },
-      {
-        header: "progress_notes",
-        key: "progress_notes",
-        width: 50,
-      },
-      {
-        header: "next_week_goals_json",
-        key: "next_week_goals_json",
-        width: 50,
-      },
-    ];
-
-    // Add content of instructors into worksheet
-    if (weeklyEntries) {
-      for (const item of weeklyEntries) {
-        worksheet.addRow({
-          id: item.id,
-          team_id: item.team_id,
-          week_start_date: item.week_start_date,
-          goals_set_json: item.goals_set_json,
-          per_goal_status_json: item.per_goal_status_json,
-          overall_status: item.overall_status,
-          progress_notes: item.progress_notes,
-          next_week_goals_json: item.next_week_team_goals_json,
-        });
-      }
-    }
-
-    // Create a buffer and trigger download
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: "application/octet-stream" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "WeeklyEntries.xlsx";
     link.click();
   }
 
