@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import {
   enterStudentWeeklyEntry,
   getStudentWeeklyEntries,
+  updateStudentWeeklyEntry,
 } from "./db/students";
 import { getSessionId } from "./db/sessions";
 import router from "next/router";
 import { getAvailableTeams, getUserFromEmail } from "./db/user";
+import { getAllCoursesInstructor } from "./db/instructors";
 
 export const StudentDetail = (selectedStudent: any) => {
   selectedStudent = selectedStudent.selectedStudent;
@@ -46,76 +48,76 @@ export const StudentDetail = (selectedStudent: any) => {
 
   const [error, setError] = useState("");
 
+  const [loading, setLoading] = useState(false);
+  const [updateMode, setUpdateMode] = useState(false);
+
   useEffect(() => {
-    const getStudents = async () => {
-      const studentsTemp = await getStudentWeeklyEntries(selectedStudent.id);
+    setLoading(true);
+
+    const init = async () => {
+      const [studentsTemp, dataSession] = await Promise.all([
+        getStudentWeeklyEntries(selectedStudent.id),
+        getSessionId(sessionStorage.getItem("sessionId")),
+      ]);
 
       if (studentsTemp) {
-        // order by week_start_date
-        studentsTemp.sort((a, b) => {
-          return (
+        studentsTemp.sort(
+          (a, b) =>
             new Date(b.week_start_date).getTime() -
-            new Date(a.week_start_date).getTime()
-          );
-        });
-
+            new Date(a.week_start_date).getTime(),
+        );
         setStudentWeeklyEntries(studentsTemp);
       }
-    };
 
-    const getAvailableTeamsForUser = async () => {
-      const sessionId = sessionStorage.getItem("sessionId");
-
-      const dataSession = await getSessionId(sessionId);
-      let role = "";
-      let email = "";
       if (!dataSession) {
-        router.push("/");
-      } else {
-        role = dataSession[0].role;
-        email = dataSession[0].user_email;
-      }
-
-      const dataUser = await getUserFromEmail(email);
-      if (
-        !dataUser ||
-        !dataUser.data ||
-        !Array.isArray(dataUser.data) ||
-        dataUser.data.length === 0
-      ) {
-        router.push("/");
+        setLoading(false);
         return;
       }
 
-      if (role === "ADMIN") {
+      const { role, email, instructor_id: instructorId } = dataSession[0].users;
+
+      const dataUser = await getUserFromEmail(email);
+      if (
+        !dataUser?.data ||
+        !Array.isArray(dataUser.data) ||
+        dataUser.data.length === 0
+      ) {
+        setLoading(false);
+        return;
+      }
+
+      const user = (dataUser.data as any[])[0];
+
+      if (
+        role === "ADMIN" ||
+        (role === "USER" && email === selectedStudent.email)
+      ) {
         setCanUpdate(true);
+      } else if (role === "INSTRUCTOR") {
+        const [availableTeamsRes, coursesInstructorRes] = await Promise.all([
+          getAvailableTeams(user),
+          getAllCoursesInstructor(instructorId),
+        ]);
+
+        const teamAccess = availableTeamsRes?.some((team: any) =>
+          selectedStudent.team_memberships.some(
+            (m: any) => m.team_id === team.team_id,
+          ),
+        );
+
+        const courseAccess = coursesInstructorRes?.some((course: any) =>
+          selectedStudent.students_courses.some(
+            (c: any) => c.course_id === course.course_id,
+          ),
+        );
+
+        if (teamAccess || courseAccess) setCanUpdate(true);
       }
 
-      if (role === "INSTRUCTOR") {
-     
-        const availableTeamsRes = await getAvailableTeams(dataUser.data[0]);
-
-        if (availableTeamsRes) {
-          // compare records of avaliableTeamsRes.team_id with selectedStudent.team_memberships.team_id
-          // if match, allow update
-
-          const availableTeamIds = availableTeamsRes.map(
-            (team) => team.team_id
-          );
-
-          const hasAccess = selectedStudent.team_memberships.some(
-            (membership:any) => availableTeamIds.includes(membership.team_id)
-          );
-          if (hasAccess) {
-            setCanUpdate(true);
-          }
-        }
-      }
+      setLoading(false);
     };
 
-    getAvailableTeamsForUser();
-
-    getStudents();
+    init();
   }, []);
 
   function handleDateChange(selectedDate: string) {
@@ -127,7 +129,7 @@ export const StudentDetail = (selectedStudent: any) => {
     let i = 0;
 
     for (const lastWeekGoal of JSON.parse(
-      studentWeeklyEntries[0].goals_set_json
+      studentWeeklyEntries[0].goals_set_json,
     )) {
       goals[i].goal = lastWeekGoal;
       i++;
@@ -180,11 +182,41 @@ export const StudentDetail = (selectedStudent: any) => {
   function handleNextWeekGoalChange(index: number, value: string) {
     // Create a new array with the updated goal
     const updatedGoals = nextWeekGoals.map(
-      (goal, i) => (i === index ? value : goal) // Replace the goal at the specified index
+      (goal, i) => (i === index ? value : goal), // Replace the goal at the specified index
     );
 
     // Update the state with the new array
     setNextWeekGoals(updatedGoals);
+  }
+
+  function handleUpdateEntry(entry: any): void {
+    setUpdateMode(true);
+    setError("");
+
+    // get last week's goals
+    let i = 0;
+
+    console.log("entry", entry);
+
+    for (const lastWeekGoal of JSON.parse(entry.goals_set_json)) {
+      goals[i].goal = lastWeekGoal;
+      i++;
+    }
+
+    i = 0;
+
+    for (const lastWeekGoal of JSON.parse(entry.per_goal_status_json)) {
+      goals[i].status = lastWeekGoal;
+      i++;
+    }
+
+    setDate(entry.week_start_date);
+
+    setGoals([...goals]);
+
+    setProgressGoal(entry.progress_notes);
+
+    setNextWeekGoals(JSON.parse(entry.next_week_goals_json));
   }
 
   function handleSaveEntry(): void {
@@ -211,16 +243,17 @@ export const StudentDetail = (selectedStudent: any) => {
       return;
     }
 
-    // check if date already present in studentWeeklyEntries.week_start_date
-    const existingEntry = studentWeeklyEntries.find(
-      (entry) => entry.week_start_date === selectedDate
-    );
+    if (!updateMode) {
+      // check if date already present in studentWeeklyEntries.week_start_date
+      const existingEntry = studentWeeklyEntries.find(
+        (entry) => entry.week_start_date === selectedDate,
+      );
 
-    if (existingEntry) {
-      setError("Entry already exists for this date");
-      return;
+      if (existingEntry) {
+        setError("Entry already exists for this date");
+        return;
+      }
     }
-
     // Check if at least one goal
 
     let atLeastOneGoal = false;
@@ -280,39 +313,64 @@ export const StudentDetail = (selectedStudent: any) => {
       student_id: selectedStudent.id,
       week_start_date: selectedDate,
       goals_set_json: JSON.stringify(
-        goals.filter((g) => g.goal != "").map((goal) => goal.goal)
+        goals.filter((g) => g.goal != "").map((goal) => goal.goal),
       ),
       per_goal_status_json: JSON.stringify(
-        goals.filter((g) => g.goal != "").map((goal) => goal.status)
+        goals.filter((g) => g.goal != "").map((goal) => goal.status),
       ),
       progress_goal: progressGoal,
       next_week_goals_json: JSON.stringify(
-        nextWeekGoals.filter((g) => g != "")
+        nextWeekGoals.filter((g) => g != ""),
       ),
       overall_status: overallStatus,
     };
 
     // add entry to DB
-    enterStudentWeeklyEntry(
-      newEntry.student_id,
-      newEntry.goals_set_json,
-      newEntry.week_start_date,
-      newEntry.per_goal_status_json,
-      overallStatus,
-      newEntry.progress_goal,
-      newEntry.next_week_goals_json
-    );
-
-    studentWeeklyEntries.push(newEntry);
-
-    studentWeeklyEntries.sort((a, b) => {
-      return (
-        new Date(b.week_start_date).getTime() -
-        new Date(a.week_start_date).getTime()
+    if (!updateMode) {
+      enterStudentWeeklyEntry(
+        newEntry.student_id,
+        newEntry.goals_set_json,
+        newEntry.week_start_date,
+        newEntry.per_goal_status_json,
+        overallStatus,
+        newEntry.progress_goal,
+        newEntry.next_week_goals_json,
       );
-    });
+    } else {
+      updateStudentWeeklyEntry(
+        newEntry.student_id,
+        newEntry.goals_set_json,
+        newEntry.week_start_date,
+        newEntry.per_goal_status_json,
+        overallStatus,
+        newEntry.progress_goal,
+        newEntry.next_week_goals_json,
+      );
+    }
 
-    setStudentWeeklyEntries([...studentWeeklyEntries]);
+    if (!updateMode) {
+      studentWeeklyEntries.push(newEntry);
+
+      studentWeeklyEntries.sort((a, b) => {
+        return (
+          new Date(b.week_start_date).getTime() -
+          new Date(a.week_start_date).getTime()
+        );
+      });
+
+      setStudentWeeklyEntries([...studentWeeklyEntries]);
+    } else {
+      // update corresponding weekly entry
+      // find entry in studentWeeklyEntries where week_start_date == selectedDate
+      const entryIndex = studentWeeklyEntries.findIndex(
+        (entry) => entry.week_start_date === selectedDate,
+      );
+
+      // modify said entry with the values in newEntry
+      studentWeeklyEntries[entryIndex] = newEntry;
+
+      setStudentWeeklyEntries([...studentWeeklyEntries]);
+    }
 
     // empty fields
     for (const goal of goals) {
@@ -333,6 +391,36 @@ export const StudentDetail = (selectedStudent: any) => {
     nextWeekGoals.splice(0, nextWeekGoals.length);
     nextWeekGoals.push("");
     setNextWeekGoals([...nextWeekGoals]);
+    setUpdateMode(false);
+  }
+
+  function handleCancel(): void {
+    setDate(new Date().toISOString().split("T")[0]);
+    setGoals([
+      {
+        id: 1,
+        goal: "",
+        status: "not_achieved",
+      },
+      {
+        id: 2,
+        goal: "",
+        status: "not_achieved",
+      },
+      {
+        id: 3,
+        goal: "",
+        status: "not_achieved",
+      },
+      {
+        id: 4,
+        goal: "",
+        status: "not_achieved",
+      },
+    ]);
+    setNextWeekGoals([""]);
+    setProgressGoal("");
+    setUpdateMode(false);
   }
 
   return (
@@ -347,179 +435,204 @@ export const StudentDetail = (selectedStudent: any) => {
         </div>
         <div></div>
       </div>
-      <div className="flex gap-1">
-        {canUpdate && (
-          <div className="background rounded-lg border border-gray-200 p-2 flex flex-col gap-2 w-1/2">
-            <h2>Quick add / edit weekly entry</h2>
-            <div className="flex justify-between">
-              <div>
-                <h3>Week (Monday)</h3>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => handleDateChange(e.target.value)}
-                  className="border-1 rounded-lg"
-                />
-              </div>
 
-              <button
-                className="border-1 rounded-lg p-2 button "
-                onClick={() => {
-                  handleDuplicateGoals();
-                }}
-              >
-                <h2> Duplicate last week's goals</h2>
-              </button>
-            </div>
+      {loading ? (
+        <div className="flex w-full justify-center mt-10">
+          <h1>Loading...</h1>
+        </div>
+      ) : (
+        <div className="flex gap-1">
+          {canUpdate && (
+            <div className="background rounded-lg border border-gray-200 p-2 flex flex-col gap-2 w-1/2">
+              <h2>Quick add / edit weekly entry</h2>
+              <div className="flex justify-between">
+                <div>
+                  <h3>Week (Monday)</h3>
+                  <input
+                    type="date"
+                    value={date}
+                    disabled={updateMode}
+                    onChange={(e) => handleDateChange(e.target.value)}
+                    className="border-1 rounded-lg"
+                  />
+                </div>
 
-            <div className="flex flex-col gap-2">
-              <h2>Goals</h2>
-              <div className="flex flex-wrap gap-4">
-                {goals.map((goal) => (
-                  <div className="flex gap-2 w-[calc(50%-25px)]" key={goal.id}>
-                    <input
-                      type="text"
-                      className="text-xs border-1 border-gray-200 w-full"
-                      value={goal.goal}
-                      onChange={(e) =>
-                        handleGoalChange(goal.id, e.target.value)
-                      } // Add appropriate change handler
-                    />
-                    <select
-                      className="border-1 border-gray-200 rounded-lg p-2"
-                      value={goal.status} // Assuming `status` is a property of `goal`
-                      onChange={(e) =>
-                        handleStatusChange(goal.id, e.target.value)
-                      } // Add appropriate change handler
-                    >
-                      <option value="not_achieved">Not achieved</option>
-                      <option value="partial">Partial</option>
-                      <option value="achieved">Achieved</option>
-                    </select>
-                  </div>
-                ))}
-              </div>
-
-              <div>
                 <button
-                  className="button  border-1 rounded-lg p-2 w-full"
-                  onClick={() => handleAddGoal()}
+                  className="border-1 rounded-lg p-2 button "
+                  onClick={() => {
+                    handleDuplicateGoals();
+                  }}
                 >
-                  <h2>+ Add Goal</h2>
+                  <h2> Duplicate last week's goals</h2>
                 </button>
               </div>
-              <div>
-                {" "}
-                <h2>Progress Goals</h2>
+
+              <div className="flex flex-col gap-2">
+                <h2>Goals</h2>
+                <div className="flex flex-wrap gap-4">
+                  {goals.map((goal) => (
+                    <div
+                      className="flex gap-2 w-[calc(50%-25px)]"
+                      key={goal.id}
+                    >
+                      <input
+                        type="text"
+                        className="text-xs border-1 border-gray-200 w-full"
+                        value={goal.goal}
+                        onChange={(e) =>
+                          handleGoalChange(goal.id, e.target.value)
+                        } // Add appropriate change handler
+                      />
+                      <select
+                        className="border-1 border-gray-200 rounded-lg p-2"
+                        value={goal.status} // Assuming `status` is a property of `goal`
+                        onChange={(e) =>
+                          handleStatusChange(goal.id, e.target.value)
+                        } // Add appropriate change handler
+                      >
+                        <option value="not_achieved">Not achieved</option>
+                        <option value="partial">Partial</option>
+                        <option value="achieved">Achieved</option>
+                      </select>
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <button
+                    className="button  border-1 rounded-lg p-2 w-full"
+                    onClick={() => handleAddGoal()}
+                  >
+                    <h2>+ Add Goal</h2>
+                  </button>
+                </div>
+                <div>
+                  {" "}
+                  <h2>Progress Goals</h2>
+                </div>
+                <textarea
+                  onChange={(e) => handleProgressGoalChange(e.target.value)}
+                  value={progressGoal}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter your message here..."
+                ></textarea>
               </div>
-              <textarea
-                onChange={(e) => handleProgressGoalChange(e.target.value)}
-                value={progressGoal}
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter your message here..."
-              ></textarea>
-            </div>
-            <div className="flex flex-col gap-2">
-              <h2>Next week goals</h2>
-              {nextWeekGoals.map((goal, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  value={goal.toString()}
-                  onChange={(e) =>
-                    handleNextWeekGoalChange(index, e.target.value)
-                  }
-                  className="border-1  border-gray-200 w-full"
-                />
-              ))}
-              <button
-                className="button border-1 rounded-lg p-2 w-full"
-                onClick={() => handleAddNextWeekGoal()}
-              >
-                <h2>+ Add Next Week Goal</h2>
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <button
-                className="buttonRed w-1/4"
-                onClick={() => handleSaveEntry()}
-              >
-                <h2>Save Entry</h2>
-              </button>
-              <div className="text-gray-500 text-sm">Create new entry</div>
-              {error && <p className="error">{error}</p>}
-            </div>
-          </div>
-        )}
-
-        <div className="background rounded-lg border border-gray-200 p-2 flex flex-col gap-2 w-1/2">
-          <h2>Weekly entries</h2>
-          {studentWeeklyEntries.map((entry, index) => (
-            <div
-              key={index}
-              className="background rounded-lg border border-gray-200 p-2"
-            >
-              <div className="flex">
-                <h2>{entry.week_start_date}</h2>
-                &nbsp;
-                <div
-                  className={`text-white p-1 rounded text-xs w-20 text-center ${
-                    entry.overall_status === "achieved"
-                      ? "bg-green-400"
-                      : entry.overall_status === "partial"
-                      ? "bg-orange-300"
-                      : "bg-red-400"
-                  }`}
+              <div className="flex flex-col gap-2">
+                <h2>Next week goals</h2>
+                {nextWeekGoals.map((goal, index) => (
+                  <input
+                    key={index}
+                    type="text"
+                    value={goal.toString()}
+                    onChange={(e) =>
+                      handleNextWeekGoalChange(index, e.target.value)
+                    }
+                    className="border-1  border-gray-200 w-full"
+                  />
+                ))}
+                <button
+                  className="button border-1 rounded-lg p-2 w-full"
+                  onClick={() => handleAddNextWeekGoal()}
                 >
-                  {entry.overall_status === "achieved"
-                    ? "Achieved"
-                    : entry.overall_status === "partial"
-                    ? "Partial"
-                    : "Not achieved"}
+                  <h2>+ Add Next Week Goal</h2>
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <button
+                  className="buttonRed w-1/4"
+                  onClick={() => handleSaveEntry()}
+                >
+                  <h2>{updateMode ? "Update Entry" : "Create New Entry"}</h2>
+                </button>
+                <button className="button w-1/4" onClick={() => handleCancel()}>
+                  <h2>Cancel</h2>
+                </button>
+
+                {error && <p className="error">{error}</p>}
+              </div>
+            </div>
+          )}
+
+          <div className="background rounded-lg border border-gray-200 p-2 flex flex-col gap-2 w-1/2">
+            <h2>Weekly entries</h2>
+            {studentWeeklyEntries.map((entry, index) => (
+              <div
+                key={index}
+                className="background rounded-lg border border-gray-200 p-2"
+              >
+                <div className="flex">
+                  <h2>{entry.week_start_date}</h2>
+                  &nbsp;
+                  <div
+                    className={`text-white p-1 rounded text-xs w-20 text-center ${
+                      entry.overall_status === "achieved"
+                        ? "bg-green-400"
+                        : entry.overall_status === "partial"
+                          ? "bg-orange-300"
+                          : "bg-red-400"
+                    }`}
+                  >
+                    {entry.overall_status === "achieved"
+                      ? "Achieved"
+                      : entry.overall_status === "partial"
+                        ? "Partial"
+                        : "Not achieved"}
+                  </div>
+                </div>
+                <ul>
+                  {JSON.parse(entry.goals_set_json).map(
+                    (goal: any, index: number) => {
+                      const status = JSON.parse(entry.per_goal_status_json)[
+                        index
+                      ];
+                      let bulletColor;
+
+                      if (status === "achieved") {
+                        bulletColor = "text-green-600"; // Couleur verte
+                      } else if (status === "partial") {
+                        bulletColor = "text-orange-300"; // Couleur orange
+                      } else {
+                        bulletColor = "text-red-500"; // Couleur rouge
+                      }
+
+                      return (
+                        <li key={index} className={`flex items-center`}>
+                          <span className={`mr-2 ${bulletColor} text-xl`}>
+                            •
+                          </span>
+                          {goal}
+                        </li>
+                      );
+                    },
+                  )}
+                </ul>
+
+                <h2>Next week goals :</h2>
+
+                <ul>
+                  {JSON.parse(entry.next_week_goals_json).map(
+                    (goal: any, index: number) => (
+                      <li key={index} className="text-gray-500 text-sm">
+                        •{goal}
+                      </li>
+                    ),
+                  )}
+                </ul>
+
+                <div className="flex justify-end ">
+                  <button
+                    className="bg-[#dddddd] rounded-md p-1"
+                    onClick={() => handleUpdateEntry(entry)}
+                  >
+                    <h2>Update Entry</h2>
+                  </button>
                 </div>
               </div>
-              <ul>
-                {JSON.parse(entry.goals_set_json).map(
-                  (goal: any, index: number) => {
-                    const status = JSON.parse(entry.per_goal_status_json)[
-                      index
-                    ];
-                    let bulletColor;
-
-                    if (status === "achieved") {
-                      bulletColor = "text-green-600"; // Couleur verte
-                    } else if (status === "partial") {
-                      bulletColor = "text-orange-300"; // Couleur orange
-                    } else {
-                      bulletColor = "text-red-500"; // Couleur rouge
-                    }
-
-                    return (
-                      <li key={index} className={`flex items-center`}>
-                        <span className={`mr-2 ${bulletColor} text-xl`}>•</span>
-                        {goal}
-                      </li>
-                    );
-                  }
-                )}
-              </ul>
-
-              <h2>Next week goals :</h2>
-
-              <ul>
-                {JSON.parse(entry.next_week_goals_json).map(
-                  (goal: any, index: number) => (
-                    <li key={index} className="text-gray-500 text-sm">
-                      •{goal}
-                    </li>
-                  )
-                )}
-              </ul>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 };

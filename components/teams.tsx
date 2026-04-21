@@ -3,18 +3,20 @@
 import { useEffect, useState } from "react";
 
 import { getAllTeams, getAllTeamsInfo } from "./db/teams";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { getSessionId } from "./db/sessions";
 import { getAvailableTeams, getUserFromEmail } from "./db/user";
 
 export const Teams = () => {
   // read data from supabase
-
+  const router = useRouter();
   const [teams, setTeams] = useState<any[]>([]);
 
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
 
   const [loading, setLoading] = useState(false);
+
+  const [goHome, setGoHome] = useState(false);
 
   const getLastThreeMondays = () => {
     const mondays = [];
@@ -48,11 +50,16 @@ export const Teams = () => {
         const dataSession = await getSessionId(sessionId);
         let role = "";
         let email = "";
+        let studentId = "";
+        let instructorId = "";
         if (!dataSession) {
-          router.push("/");
+          setGoHome(true);
+          return;
         } else {
-          role = dataSession[0].role;
-          email = dataSession[0].user_email;
+          role = dataSession[0].users.role;
+          email = dataSession[0].users.email;
+          studentId = dataSession[0].users.student_id;
+          instructorId = dataSession[0].users.instructor_id;
         }
 
         const dataUser = await getUserFromEmail(email);
@@ -62,7 +69,7 @@ export const Teams = () => {
           !Array.isArray(dataUser.data) ||
           dataUser.data.length === 0
         ) {
-          router.push("/");
+          setGoHome(true);
           return;
         }
 
@@ -79,7 +86,7 @@ export const Teams = () => {
             //  Filter teamsTemp to only put teams in teamsTempAvailable
             teamsTemp = teamsTemp.filter((team) => {
               return teamsTempAvailable.some(
-                (teamTemp) => teamTemp.id === team.id
+                (teamTemp) => teamTemp.id === team.id,
               );
             });
 
@@ -95,6 +102,12 @@ export const Teams = () => {
 
     getTeams();
   }, []);
+
+  useEffect(() => {
+    if (goHome) {
+      router.push("/");
+    }
+  }, [goHome]);
   return (
     <div className="p-3">
       {selectedTeam && (
@@ -128,7 +141,7 @@ export const Teams = () => {
                       {team.team_memberships.map(
                         (member: any, index: number) => (
                           <h3>{member.students.full_name}</h3>
-                        )
+                        ),
                       )}
                     </div>
                   </div>
@@ -168,7 +181,7 @@ export const Teams = () => {
                           .filter(
                             (entry: any) =>
                               entry.week_start_date ===
-                              monday.toISOString().split("T")[0]
+                              monday.toISOString().split("T")[0],
                           ) // Comparer les dates
                           .map((entry: any, entryIndex: number) => (
                             <div
@@ -185,7 +198,7 @@ export const Teams = () => {
                                   >
                                     {teamGoal}
                                   </div>
-                                )
+                                ),
                               )}
 
                               <h3>Progress notes</h3>
@@ -201,7 +214,7 @@ export const Teams = () => {
                                   >
                                     {teamGoalNext}
                                   </div>
-                                )
+                                ),
                               )}
                             </div>
                           ))}

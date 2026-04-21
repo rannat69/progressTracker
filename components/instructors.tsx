@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { StudentDetail } from "./studentDetail";
-import { getAllInstructors } from "./db/instructors";
+import {
+  getAllCoursesInstructor,
+  getAllInstructors,
+  getAllInstructorsWithCourses,
+} from "./db/instructors";
 
 export const Instructors = () => {
   // read data from supabase
@@ -15,12 +19,14 @@ export const Instructors = () => {
     setLoading(true);
 
     const getInstructors = async () => {
-      const instructorsTemp = await getAllInstructors();
+      const instructorsTemp = await getAllInstructorsWithCourses();
+
+      console.log("instructorsTemp", instructorsTemp);
 
       if (instructorsTemp) {
         setInstructors(instructorsTemp);
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     getInstructors();
@@ -36,6 +42,7 @@ export const Instructors = () => {
               <tr>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Courses</th>
               </tr>
             </thead>
             <tbody>
@@ -49,6 +56,11 @@ export const Instructors = () => {
                   >
                     <td>{instructor.full_name}</td>
                     <td>{instructor.email}</td>
+                    <td>
+                      {instructor.instructors_courses
+                        .map((insCourse: any) => insCourse.courses.name)
+                        .join(", ")}
+                    </td>
                   </tr>
                 ))}
             </tbody>

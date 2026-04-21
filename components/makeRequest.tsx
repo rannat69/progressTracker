@@ -70,11 +70,14 @@ export const MakeRequest = () => {
       const dataSession = await getSessionId(sessionId);
       let role = "";
       let email = "";
+      let studentId = "";
+      let instructorId = "";
       if (!dataSession) {
-        router.push("/");
       } else {
-        role = dataSession[0].role;
-        email = dataSession[0].user_email;
+        role = dataSession[0].users.role;
+        email = dataSession[0].users.email;
+        studentId = dataSession[0].users.student_id;
+        instructorId = dataSession[0].users.instructor_id;
       }
 
       const dataUser = await getUserFromEmail(email);
@@ -122,7 +125,6 @@ export const MakeRequest = () => {
   }
 
   async function handleSaveRequest(): Promise<void> {
-
     // check if cost is numeric and > 0
     if (isNaN(cost) || cost <= 0) {
       showToast("Cost must be a positive number.", "error");
@@ -199,9 +201,8 @@ export const MakeRequest = () => {
       title,
       desc,
       role,
-      userId
+      userId,
     );
-
 
     if (!createRequestRes) {
       showToast("Error creating request.", "error");
@@ -230,8 +231,10 @@ export const MakeRequest = () => {
   async function handleImportCall(e: React.ChangeEvent<HTMLInputElement>) {
     const importRes = await handleImport(e);
 
+    console.log("importRes", importRes);
+
     if (importRes) {
-      showToast("Import successful.", "success");
+      showToast("Import successful. Your request has been created.", "success");
     } else {
       showToast("Import failed.", "error");
     }

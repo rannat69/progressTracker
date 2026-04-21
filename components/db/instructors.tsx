@@ -13,6 +13,19 @@ export async function getAllInstructors() {
   }
 }
 
+export async function getAllInstructorsWithCourses() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("instructors")
+    .select("*, instructors_courses(*, courses(*))");
+  if (data && data.length > 0) {
+    return data;
+  } else {
+    return null;
+  }
+}
+
 // get all courses for a specific instructor
 export async function getAllCoursesInstructor(instructorId: any) {
   const supabase = await createClient();

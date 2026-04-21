@@ -9,9 +9,11 @@ import { getAllTeamWeeklyEntries } from "./db/teamWeeklyEntries";
 import { useEffect, useState } from "react";
 import { getAvailableTeams, getUserFromEmail } from "./db/user";
 import { getSessionId } from "./db/sessions";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 export const Reports = () => {
+  const router = useRouter();
+
   const [role, setRole] = useState("");
   const [user, setUser] = useState<any>();
   useEffect(() => {
@@ -19,13 +21,18 @@ export const Reports = () => {
       const sessionId = sessionStorage.getItem("sessionId");
 
       const dataSession = await getSessionId(sessionId);
-      //let role = "";
+      let role = "";
       let email = "";
+      let studentId = "";
+      let instructorId = "";
       if (!dataSession) {
         router.push("/");
       } else {
-        setRole(dataSession[0].role);
-        email = dataSession[0].user_email;
+        role = dataSession[0].users.role;
+        email = dataSession[0].users.email;
+        studentId = dataSession[0].users.student_id;
+        instructorId = dataSession[0].users.instructor_id;
+        setRole(role);
       }
 
       const dataUser = await getUserFromEmail(email);
@@ -78,7 +85,7 @@ export const Reports = () => {
         students = students.filter(
           (s) =>
             s.students_courses[0]?.courses?.instructors_courses[0]
-              ?.instructor_id === user.instructor_id
+              ?.instructor_id === user.instructor_id,
         );
       }
     }
@@ -152,8 +159,8 @@ export const Reports = () => {
         // filter teams where it contains only records where team.id = availableTeamsRes.id
         teams = teams.filter((team) =>
           availableTeamsRes.some(
-            (availableTeam) => availableTeam.team_id === team.id
-          )
+            (availableTeam) => availableTeam.team_id === team.id,
+          ),
         );
       }
     }
@@ -287,7 +294,7 @@ export const Reports = () => {
           >
             Courses
           </h2>
-          {role != "ADMIN" && (
+          {role === "ADMIN" && (
             <h2
               className="border-1 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-200 p-2"
               onClick={() => handleInstructors()}

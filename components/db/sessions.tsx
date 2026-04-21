@@ -18,7 +18,7 @@ export async function getSessionId(session_id: any) {
 
   const { data, error } = await supabase
     .from("sessions")
-    .select("*")
+    .select("*, users(*)")
     .eq("session_id", session_id);
 
   if (data && data.length > 0) {

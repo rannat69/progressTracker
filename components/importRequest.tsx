@@ -111,13 +111,15 @@ const createRequestFromExcel = async (requestData: any) => {
     const dataSession = await getSessionId(sessionId);
     let role = "";
     let email = "";
+    let studentId = "";
+    let instructorId = "";
     if (!dataSession) {
-      return null;
     } else {
-      role = dataSession[0].role;
-      email = dataSession[0].user_email;
+      role = dataSession[0].users.role;
+      email = dataSession[0].users.email;
+      studentId = dataSession[0].users.student_id;
+      instructorId = dataSession[0].users.instructor_id;
     }
-
     // create request and item request
 
     const team = await getTeamIdFromName(requestData.team);
@@ -141,7 +143,7 @@ const createRequestFromExcel = async (requestData: any) => {
     // search for an existing request with same title and description from one minute ago
     const recentRequestRes = await getRecentRequests(
       requestData.title,
-      requestData.description
+      requestData.description,
     );
 
     let requestId;
@@ -150,6 +152,9 @@ const createRequestFromExcel = async (requestData: any) => {
       // if already exists, do not recreate request, add item to existing
       requestId = recentRequestRes[0].id;
     } else {
+
+      
+
       // make an insert into table requests in supabase
       const createRequestRes = await createRequest(
         requestData.total_cost,
@@ -158,7 +163,7 @@ const createRequestFromExcel = async (requestData: any) => {
         requestData.title,
         requestData.description,
         role,
-        (dataUser.data as any[])[0].id
+        (dataUser.data as any[])[0].id,
       );
 
       if (!createRequestRes) {
@@ -244,7 +249,7 @@ export async function handleExport(): Promise<void> {
 
     const rows = worksheet.getRows(
       0,
-      worksheet.lastRow?.number ? worksheet.lastRow?.number + 1 : 0
+      worksheet.lastRow?.number ? worksheet.lastRow?.number + 1 : 0,
     );
 
     if (rows) {

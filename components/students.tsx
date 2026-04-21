@@ -2,12 +2,14 @@
 
 import {
   getAllStudentsWeeklyEntries,
+  getInstructorStudentsWeeklyEntries,
+  getSingleStudentsWeeklyEntries,
   getStudentTeam,
 } from "@/components/db/students";
 import { useEffect, useState } from "react";
 import { StudentDetail } from "./studentDetail";
 import { getAllTeams } from "./db/teams";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { getUserFromEmail } from "./db/user";
 import { getSessionId } from "./db/sessions";
 
@@ -26,6 +28,10 @@ export const Students = () => {
   const [nameFilter, setNameFilter] = useState("");
   const [teamFilter, setTeamFilter] = useState("");
 
+  const [goHome, setGoHome] = useState(false);
+
+  const router = useRouter();
+
   // check monday of current week
   const today = new Date();
   let currentWeekMonday = null;
@@ -41,8 +47,35 @@ export const Students = () => {
   useEffect(() => {
     setLoading(true);
 
+    let studentsTemp: any[] = [];
     const getStudents = async () => {
-      let studentsTemp = await getAllStudentsWeeklyEntries();
+      const sessionId = sessionStorage.getItem("sessionId");
+
+      const dataSession = await getSessionId(sessionId);
+      let role = "";
+      let email = "";
+      let studentId = "";
+      let instructorId = "";
+      if (!dataSession) {
+        setGoHome(true);
+      } else {
+        role = dataSession[0].users.role;
+        email = dataSession[0].users.email;
+        studentId = dataSession[0].users.student_id;
+        instructorId = dataSession[0].users.instructor_id;
+      }
+
+      if (role === "ADMIN") {
+        studentsTemp = await getAllStudentsWeeklyEntries();
+      }
+
+      if (role === "INSTRUCTOR") {
+        studentsTemp = await getInstructorStudentsWeeklyEntries(instructorId);
+      }
+
+      if (role === "USER") {
+        studentsTemp = await getSingleStudentsWeeklyEntries(studentId);
+      }
 
       if (studentsTemp) {
         for (const student of studentsTemp) {
@@ -53,18 +86,18 @@ export const Students = () => {
               const entryDateOnly = new Date(
                 entryDate.getFullYear(),
                 entryDate.getMonth(),
-                entryDate.getDate()
+                entryDate.getDate(),
               );
               const currentWeekMondayOnly = new Date(
                 currentWeekMonday.getFullYear(),
                 currentWeekMonday.getMonth(),
-                currentWeekMonday.getDate()
+                currentWeekMonday.getDate(),
               );
 
               return (
                 entryDateOnly.getTime() === currentWeekMondayOnly.getTime()
               );
-            }
+            },
           );
 
           student.team = "";
@@ -77,17 +110,6 @@ export const Students = () => {
         }
 
         // If not admin, restrict student list
-        const sessionId = sessionStorage.getItem("sessionId");
-
-        const dataSession = await getSessionId(sessionId);
-        let role = "";
-        let email = "";
-        if (!dataSession) {
-          router.push("/");
-        } else {
-          role = dataSession[0].role;
-          email = dataSession[0].user_email;
-        }
 
         const dataUser = await getUserFromEmail(email);
         if (
@@ -96,7 +118,6 @@ export const Students = () => {
           !Array.isArray(dataUser.data) ||
           dataUser.data.length === 0
         ) {
-          router.push("/");
           return;
         }
 
@@ -104,15 +125,14 @@ export const Students = () => {
           // if student, show only their own data
           if (dataUser.data[0].student_id) {
             studentsTemp = studentsTemp.filter(
-              (student) => student.id === dataUser.data[0].student_id
+              (student) => student.id === dataUser.data[0].student_id,
             );
           } else if (dataUser.data[0].instructor_id) {
-
             // Filter the studentsTemp array
             studentsTemp = studentsTemp.filter(
               (s) =>
                 s.students_courses[0]?.courses?.instructors_courses[0]
-                  ?.instructor_id === dataUser.data[0].instructor_id
+                  ?.instructor_id === dataUser.data[0].instructor_id,
             );
           } else {
             studentsTemp = [];
@@ -128,6 +148,12 @@ export const Students = () => {
     getStudents();
   }, []);
 
+  useEffect(() => {
+    if (goHome) {
+      router.push("/");
+    }
+  }, [goHome]);
+
   function handleFilterName(value: string): void {
     setNameFilter(value);
     let filtered = studentsUnfiltered;
@@ -138,7 +164,7 @@ export const Students = () => {
           student.team_memberships &&
           student.team_memberships.some(
             (membership: { team_id: string }) =>
-              membership.team_id === teamFilter
+              membership.team_id === teamFilter,
           )
         );
       });
@@ -179,7 +205,7 @@ export const Students = () => {
       return (
         student.team_memberships &&
         student.team_memberships.some(
-          (membership: { team_id: string }) => membership.team_id === value
+          (membership: { team_id: string }) => membership.team_id === value,
         )
       );
     });
@@ -254,10 +280,10 @@ export const Students = () => {
         ? student.weekly_entries[0].overall_status === "not_achieved"
           ? "bg-red-500 text-white"
           : student.weekly_entries[0].overall_status === "partial"
-          ? "bg-orange-500 text-white"
-          : student.weekly_entries[0].overall_status === "achieved"
-          ? "bg-green-500 text-white"
-          : ""
+            ? "bg-orange-500 text-white"
+            : student.weekly_entries[0].overall_status === "achieved"
+              ? "bg-green-500 text-white"
+              : ""
         : ""
     } rounded-xl p-1 w-1/2`}
                       >
@@ -266,9 +292,9 @@ export const Students = () => {
                             "not_achieved"
                             ? "Not achieved"
                             : student.weekly_entries[0].overall_status ===
-                              "partial"
-                            ? "Partial"
-                            : "Achieved"
+                                "partial"
+                              ? "Partial"
+                              : "Achieved"
                           : "--"}
                       </div>
                     </td>
@@ -277,10 +303,10 @@ export const Students = () => {
                       {student.weekly_entries && student.weekly_entries[0]
                         ? (() => {
                             const statuses = JSON.parse(
-                              student.weekly_entries[0].per_goal_status_json
+                              student.weekly_entries[0].per_goal_status_json,
                             );
                             const achievedCount = statuses.filter(
-                              (status: string) => status === "achieved"
+                              (status: string) => status === "achieved",
                             ).length;
                             const totalCount = statuses.length;
 

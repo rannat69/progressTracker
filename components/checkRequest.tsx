@@ -17,6 +17,8 @@ export const CheckRequest = () => {
 
   const [error, setError] = useState("");
 
+  const [goHome, setgoHome] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -31,11 +33,14 @@ export const CheckRequest = () => {
         const dataSession = await getSessionId(sessionId);
         let role = "";
         let email = "";
+        let studentId = "";
+        let instructorId = "";
         if (!dataSession) {
-          router.push("/");
         } else {
-          role = dataSession[0].role;
-          email = dataSession[0].user_email;
+          role = dataSession[0].users.role;
+          email = dataSession[0].users.email;
+          studentId = dataSession[0].users.student_id;
+          instructorId = dataSession[0].users.instructor_id;
         }
 
         const dataUser = await getUserFromEmail(email);
@@ -45,7 +50,7 @@ export const CheckRequest = () => {
           !Array.isArray(dataUser.data) ||
           dataUser.data.length === 0
         ) {
-          router.push("/");
+          setgoHome(true);
           return;
         }
 
@@ -80,6 +85,12 @@ export const CheckRequest = () => {
     getRequests();
   }, []);
 
+  useEffect(() => {
+    if (goHome) {
+      router.push("/");
+    }
+  }, [goHome]);
+
   const handleAccept = async () => {
     // Logic to accept the request (e.g., update the request status in your database)
 
@@ -88,9 +99,7 @@ export const CheckRequest = () => {
     if (!selectedRequest) {
       return null;
     }
-    console.log("Request accepted:", selectedRequest);
-    // set request to "Accepted"
-    selectedRequest.status = "Accepted";
+
     // update team budget
     const teamRes = await getTeamById(selectedRequest.teams.id);
 
@@ -98,7 +107,7 @@ export const CheckRequest = () => {
     if (teamRes.budget < selectedRequest.cost) {
       console.log("Not enough budget");
       setError("Not enough budget");
-      return;
+      return null;
     } else {
       updateTeam(teamRes.id, {
         ...teamRes,
@@ -107,10 +116,14 @@ export const CheckRequest = () => {
     }
 
     // get email of current user from session
+
+    let email = "";
     const sessionId = sessionStorage.getItem("sessionId");
-    const session = await getSessionId(sessionId);
-    if (session) {
-      const user = await getUserFromEmail(session[0].user_email);
+    const dataSession = await getSessionId(sessionId);
+    if (dataSession) {
+      email = dataSession[0].users.email;
+
+      const user = await getUserFromEmail(email);
 
       if (user) {
         updateRequestStatus(selectedRequest.id, user.data[0].id, "Accepted");
@@ -126,6 +139,10 @@ export const CheckRequest = () => {
       value: selectedRequest.cost,
     });
 
+    console.log("Request accepted:", selectedRequest);
+    // set request to "Accepted"
+    selectedRequest.status = "Accepted";
+
     setSelectedRequest(null); // Close the popup
   };
 
@@ -136,10 +153,16 @@ export const CheckRequest = () => {
     // set request to "Declined"
     selectedRequest.status = "Declined";
 
+    let email = "";
+
     const sessionId = sessionStorage.getItem("sessionId");
-    const session = await getSessionId(sessionId);
-    if (session) {
-      const user = await getUserFromEmail(session[0].user_email);
+    const dataSession = await getSessionId(sessionId);
+    if (dataSession) {
+      email = dataSession[0].users.email;
+
+      const user = await getUserFromEmail(email);
+
+      console.log("user", user);
 
       if (user) {
         updateRequestStatus(selectedRequest.id, user.data[0].id, "Declined");
@@ -182,24 +205,29 @@ export const CheckRequest = () => {
           </div>
 
           <div className="mt-4">
-            <button
-              onClick={onAccept}
-              className="mr-2 bg-green-500 text-white p-2 rounded cursor-pointer"
-            >
-              Accept
-            </button>
-            <button
-              onClick={onDecline}
-              className="bg-red-500 text-white p-2 rounded cursor-pointer"
-            >
-              Decline
-            </button>
+            {request.status === "Pending" && (
+              <>
+                <button
+                  onClick={onAccept}
+                  className="mr-2 bg-green-500 text-white p-2 rounded cursor-pointer"
+                >
+                  Accept
+                </button>
+                <button
+                  onClick={onDecline}
+                  className="bg-red-500 text-white p-2 rounded cursor-pointer"
+                >
+                  Decline
+                </button>
+              </>
+            )}
             <button
               onClick={onClose}
               className="ml-2 border border-gray-300 p-2 rounded cursor-pointer"
             >
               Close
             </button>
+
             <div className="text-red-500">{error}</div>
           </div>
         </div>
@@ -229,9 +257,8 @@ export const CheckRequest = () => {
               <tr
                 key={request.id}
                 onClick={() => {
-                  if (request.status === "Pending") {
-                    setSelectedRequest(request);
-                  }
+                  setError("");
+                  setSelectedRequest(request);
                 }}
               >
                 <td>{request.teams.team_name}</td>
@@ -249,8 +276,8 @@ export const CheckRequest = () => {
                       request.status === "Accepted"
                         ? "w-1/2 p-2 rounded-xl text-white bg-green-600"
                         : request.status === "Declined"
-                        ? "w-1/2 p-2 rounded-xl text-white bg-red-500 "
-                        : ""
+                          ? "w-1/2 p-2 rounded-xl text-white bg-red-500 "
+                          : ""
                     }
                   >
                     {request.status}
@@ -263,7 +290,6 @@ export const CheckRequest = () => {
                       request.validator.last_name
                     : ""}
                 </td>
-       
               </tr>
             ))}
         </tbody>

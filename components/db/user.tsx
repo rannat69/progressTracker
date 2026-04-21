@@ -88,9 +88,7 @@ export async function login(email: string, password: string) {
   // create record in table session
   const { data, error } = await supabase
     .from("sessions")
-    .insert([
-      { session_id: randNumber, user_email: email, role: userRes.data[0].role },
-    ]);
+    .insert([{ session_id: randNumber, user_id: userRes.data[0].id }]);
   return { randNumber: randNumber, error: false };
   // revalidatePath("/", "layout");
   //redirect(`/main?sessionId=${randNumber}`);
