@@ -66,16 +66,16 @@ export const Students = () => {
       }
 
       if (role === "ADMIN") {
-        studentsTemp = await getAllStudentsWeeklyEntries();
+        studentsTemp = (await getAllStudentsWeeklyEntries()) ?? [];
       }
 
       if (role === "INSTRUCTOR") {
-        studentsTemp = await getInstructorStudentsWeeklyEntries(instructorId);
-
+        studentsTemp =
+          (await getInstructorStudentsWeeklyEntries(instructorId)) ?? [];
       }
 
       if (role === "USER") {
-        studentsTemp = await getSingleStudentsWeeklyEntries(studentId);
+        studentsTemp = (await getSingleStudentsWeeklyEntries(studentId)) ?? [];
       }
 
       if (studentsTemp) {
@@ -121,8 +121,6 @@ export const Students = () => {
         ) {
           return;
         }
-
-    
 
         setStudents(studentsTemp);
         setStudentsUnfiltered(studentsTemp);

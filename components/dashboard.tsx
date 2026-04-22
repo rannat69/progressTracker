@@ -76,15 +76,15 @@ export const Dashboard = () => {
       }
 
       if (role === "ADMIN") {
-        studentsTemp = await getAllStudentsWeeklyEntries();
+        studentsTemp = await getAllStudentsWeeklyEntries() ?? [];
       }
 
       if (role === "INSTRUCTOR") {
-        studentsTemp = await getInstructorStudentsWeeklyEntries(instructorId);
+        studentsTemp = await getInstructorStudentsWeeklyEntries(instructorId) ?? [];
       }
 
       if (role === "USER") {
-        studentsTemp = await getSingleStudentsWeeklyEntries(studentId);
+        studentsTemp = await getSingleStudentsWeeklyEntries(studentId) ?? [];
       }
 
       console.log("studentsTemp", studentsTemp);

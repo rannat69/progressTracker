@@ -78,6 +78,7 @@ export const StudentDetail = (selectedStudent: any) => {
 
       const dataUser = await getUserFromEmail(email);
       if (
+        !dataUser ||
         !dataUser?.data ||
         !Array.isArray(dataUser.data) ||
         dataUser.data.length === 0
