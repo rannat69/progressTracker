@@ -14,6 +14,64 @@ export async function getAllUsers() {
   return users;
 }
 
+export async function loginNoPassword(email: string) {
+  const supabase = await createClient();
+
+  const userRes = await supabase.from("users").select("*").eq("email", email);
+
+  console.log("userRes ", userRes);
+  console.log("userRes data", userRes.data);
+
+  if (!userRes || !userRes.data || userRes.data.length === 0) {
+    return false;
+  }
+
+  /*console.log("userRes", userRes.data);
+
+  const hash = await bcrypt.hash(userRes.data[0].password, 10);
+
+  console.log("hash", hash);
+*/
+
+  // Usage with async/await
+
+  // Initialiser le numéro aléatoire
+  let randNumber;
+
+  // Boucle jusqu'à ce qu'un numéro unique soit trouvé
+  let sessionData = [];
+  do {
+    randNumber = Math.floor(Math.random() * 1000000);
+
+    // Vérifiez si le numéro de session existe déjà
+    try {
+      const { data, error } = await supabase
+        .from("sessions")
+        .select("*")
+        .eq("session_id", randNumber);
+
+      console.log("error", error);
+
+      sessionData = data || [];
+
+      if (error) {
+        console.error("Error checking session :", error);
+        return { randNumber: 0, error: true };
+      }
+    } catch (error) {
+      console.error("Error checking session :", error);
+      return { randNumber: 0, error: true };
+    }
+  } while (sessionData.length > 0);
+  // create record in table session
+  const { data, error } = await supabase
+    .from("sessions")
+    .insert([{ session_id: randNumber, user_id: userRes.data[0].id }]);
+  return { randNumber: randNumber, error: false };
+  // revalidatePath("/", "layout");
+  //redirect(`/main?sessionId=${randNumber}`);
+}
+
 export async function login(email: string, password: string) {
   const supabase = await createClient();
 

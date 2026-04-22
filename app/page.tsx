@@ -58,6 +58,10 @@ export default function LoginPage() {
     router.push(`/signup`);
   }
 
+  function handleCAS(): void {
+    router.push(`/cas`);
+  }
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className="flex flex-col items-center mt-50">
@@ -92,6 +96,10 @@ export default function LoginPage() {
                 {error && <p className="error">{error}</p>}
                 <div className="button" onClick={() => handleSignup()}>
                   Sign up
+                </div>
+
+                          <div className="button" onClick={() => handleCAS()}>
+                  CAS
                 </div>
               </>
             )}
