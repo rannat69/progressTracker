@@ -71,6 +71,7 @@ export const Students = () => {
 
       if (role === "INSTRUCTOR") {
         studentsTemp = await getInstructorStudentsWeeklyEntries(instructorId);
+
       }
 
       if (role === "USER") {
@@ -121,28 +122,12 @@ export const Students = () => {
           return;
         }
 
-        if (role != "ADMIN") {
-          // if student, show only their own data
-          if (dataUser.data[0].student_id) {
-            studentsTemp = studentsTemp.filter(
-              (student) => student.id === dataUser.data[0].student_id,
-            );
-          } else if (dataUser.data[0].instructor_id) {
-            // Filter the studentsTemp array
-            studentsTemp = studentsTemp.filter(
-              (s) =>
-                s.students_courses[0]?.courses?.instructors_courses[0]
-                  ?.instructor_id === dataUser.data[0].instructor_id,
-            );
-          } else {
-            studentsTemp = [];
-          }
-        }
+    
 
         setStudents(studentsTemp);
         setStudentsUnfiltered(studentsTemp);
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     getStudents();

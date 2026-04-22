@@ -6,6 +6,7 @@ import { get } from "http";
 import { useRouter } from "next/navigation";
 import { getSessionId } from "@/components/db/sessions";
 import { getAllTeams } from "@/components/db/teams";
+import { getAllCourses } from "@/components/db/courses";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -13,6 +14,9 @@ export default function LoginPage() {
   const [teams, setTeams] = useState<any[]>([]);
   const [team, setTeam] = useState<any>();
   const [role, setRole] = useState<string>("student");
+
+  const [courses, setCourses] = useState<any[]>([]);
+  const [selectedCourses, setSelectedCourses] = useState<any[]>([]);
   const router = useRouter();
   useEffect(() => {
     // read from supabase
@@ -25,6 +29,12 @@ export default function LoginPage() {
         setTeam(teamsRes[0].id);
 
         setRole("student");
+      }
+
+      const coursesRes = await getAllCourses();
+
+      if (coursesRes) {
+        setCourses(coursesRes);
       }
     };
 
@@ -96,6 +106,7 @@ export default function LoginPage() {
       firstName: firstName,
       lastName: lastName,
       team: team,
+      courses: selectedCourses,
       role: role,
     });
 
@@ -108,10 +119,25 @@ export default function LoginPage() {
     setTeam(value);
   }
 
+  function addToselectedCourses(id: string): void {
+    // Check if the ID is already there
+    const exists = selectedCourses.includes(id);
+
+    if (exists) {
+      // Remove it: Filter out the ID
+      setSelectedCourses(selectedCourses.filter((courseId) => courseId !== id));
+    } else {
+      // Add it: Spread the existing IDs and add the new one
+      setSelectedCourses([...selectedCourses, id]);
+    }
+  }
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className="flex flex-col items-center mt-50">
-        <div className="cursor-pointer" onClick={() => router.push(`/`)}>Back</div>
+        <div className="cursor-pointer" onClick={() => router.push(`/`)}>
+          Back
+        </div>
         <h1 className="p-5">Welcome to Progress Tracker</h1>
         <h1 className="p-5">Sign Up</h1>
         <form onSubmit={handleSignup}>
@@ -143,6 +169,25 @@ export default function LoginPage() {
                   <option value={team.id}>{team.team_name}</option>
                 ))}
               </select>{" "}
+            </div>
+            <div className="flex gap-2">
+              <label htmlFor="team" id="team" className="w-40">
+                Courses:
+              </label>
+
+              {courses.map((course) => (
+                <div
+                  className={`cursor-pointer rounded-xl p-2 transition-colors ${
+                    selectedCourses.includes(course.id)
+                      ? "bg-[#5555FF] text-white" // Colour when selected
+                      : "bg-[#DDDDFF] text-black" // Colour when not selected
+                  }`}
+                  key={course.id}
+                  onClick={() => addToselectedCourses(course.id)}
+                >
+                  {course.name}
+                </div>
+              ))}
             </div>
             <div className="flex gap-2">
               <label htmlFor="team" className="w-40">

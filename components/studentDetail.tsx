@@ -7,7 +7,7 @@ import {
 import { getSessionId } from "./db/sessions";
 import router from "next/router";
 import { getAvailableTeams, getUserFromEmail } from "./db/user";
-import { getAllCoursesInstructor } from "./db/instructors";
+import { getCoursesInstructor } from "./db/instructors";
 
 export const StudentDetail = (selectedStudent: any) => {
   selectedStudent = selectedStudent.selectedStudent;
@@ -96,7 +96,7 @@ export const StudentDetail = (selectedStudent: any) => {
       } else if (role === "INSTRUCTOR") {
         const [availableTeamsRes, coursesInstructorRes] = await Promise.all([
           getAvailableTeams(user),
-          getAllCoursesInstructor(instructorId),
+          getCoursesInstructor(instructorId),
         ]);
 
         const teamAccess = availableTeamsRes?.some((team: any) =>
@@ -395,6 +395,8 @@ export const StudentDetail = (selectedStudent: any) => {
   }
 
   function handleCancel(): void {
+    setError("");
+
     setDate(new Date().toISOString().split("T")[0]);
     setGoals([
       {

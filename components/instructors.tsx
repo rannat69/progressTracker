@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import { StudentDetail } from "./studentDetail";
 import {
-  getAllCoursesInstructor,
-  getAllInstructors,
   getAllInstructorsWithCourses,
 } from "./db/instructors";
 

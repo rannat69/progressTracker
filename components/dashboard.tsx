@@ -8,7 +8,6 @@ import { StudentDetail } from "./studentDetail";
 import { getUserFromEmail } from "./db/user";
 import { getSessionId } from "./db/sessions";
 import { useRouter } from "next/navigation";
-import { getAllCoursesInstructor } from "./db/instructors";
 
 export const Dashboard = () => {
   // read data from supabase

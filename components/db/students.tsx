@@ -100,7 +100,7 @@ export async function getInstructorStudentsWeeklyEntries(instructorId: string) {
     )
     .in("students_courses.course_id", courseIds);
 
-  console.log("error", error);
+  console.log("error students", error);
   console.log("courseIds", courseIds);
 
   if (data && data.length > 0) {
@@ -117,13 +117,28 @@ export async function getStudentTeam(studentId: string) {
   const { data, error } = await supabase
     .from("team_memberships")
     .select("*")
-    .eq("id", studentId);
+    .eq("student_id", studentId);
   if (data && data.length > 0) {
     return data;
   } else {
     return null;
   }
 }
+
+export async function getStudentCourses(studentId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("students_courses")
+    .select("*, courses(*)")
+    .eq("student_id", studentId);
+  if (data && data.length > 0) {
+    return data;
+  } else {
+    return null;
+  }
+}
+
 
 export async function getStudentWeeklyEntries(studentId: string) {
   const supabase = await createClient();

@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
 import { getAllUsers, updateUser } from "./db/user";
 import { getAllTeams } from "./db/teams";
+import { getAllCourses } from "./db/courses";
+import { getCoursesInstructor } from "./db/instructors";
+import { getStudentCourses } from "./db/students";
 
 export const UserManagement = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [teams, setTeams] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -16,7 +21,6 @@ export const UserManagement = () => {
       try {
         const usersTemp = await getAllUsers();
 
-
         if (usersTemp?.data) {
           setUsers(usersTemp.data);
         }
@@ -24,6 +28,12 @@ export const UserManagement = () => {
         const teamsRes = await getAllTeams();
         if (teamsRes) {
           setTeams(teamsRes);
+        }
+
+        const coursesRes = await getAllCourses();
+
+        if (coursesRes) {
+          setCourses(coursesRes);
         }
       } catch (error) {
         console.error("Error fetching users or teams:", error);
@@ -40,11 +50,55 @@ export const UserManagement = () => {
     const [lastName, setLastName] = useState(user.last_name);
     const [role, setRole] = useState(user.role);
 
+    const [selectedCourses, setSelectedCourses] = useState<any[]>([]);
+
     useEffect(() => {
+      console.log("user", user);
+
+      const init = async () => {
+        if (user.instructor_id) {
+          const instrCourses = await getCoursesInstructor(user.instructor_id);
+
+          console.log("instrCourses", instrCourses);
+
+          if (instrCourses) {
+            for (const course of instrCourses) {
+              selectedCourses.push(course.course_id);
+            }
+          }
+        }
+        if (user.student_id) {
+          const studCourses = await getStudentCourses(user.student_id);
+          if (studCourses) {
+            for (const course of studCourses) {
+              selectedCourses.push(course.course_id);
+            }
+          }
+        }
+        setSelectedCourses([...selectedCourses]);
+      };
+
+      init();
+
       setFirstName(user.first_name);
       setLastName(user.last_name);
       setRole(user.role);
     }, [user]);
+
+    function addToselectedCourses(id: string): void {
+      // Check if the ID is already there
+      const exists = selectedCourses.includes(id);
+
+      if (exists) {
+        // Remove it: Filter out the ID
+        setSelectedCourses(
+          selectedCourses.filter((courseId) => courseId !== id),
+        );
+      } else {
+        // Add it: Spread the existing IDs and add the new one
+        setSelectedCourses([...selectedCourses, id]);
+      }
+    }
 
     const handleUpdateUser = async () => {
       // Logic to accept the request (e.g., update the request status in your database)
@@ -74,6 +128,7 @@ export const UserManagement = () => {
         firstName,
         lastName,
         role: user.role !== "ADMIN" ? role : user.role,
+        courses: selectedCourses,
       });
 
       setSelectedUser(null); // Close the popup
@@ -116,8 +171,29 @@ export const UserManagement = () => {
             <option value="INSTRUCTOR">Instructor</option>
             <option value="ADMIN">Admin</option>
           </select>
-          <h3>Teams</h3>
-          <div className="ml-2 border border-gray-300 p-2 rounded flex flex-col gap-3"></div>
+
+          <div>
+            <label htmlFor="courses" id="courses" className="w-40">
+              Courses:
+            </label>
+          </div>
+
+          <div className="flex gap-1">
+            {courses.map((course) => (
+              <div
+                className={`cursor-pointer rounded-xl p-2 transition-colors ${
+                  selectedCourses.includes(course.id)
+                    ? "bg-[#5555FF] text-white" // Colour when selected
+                    : "bg-[#DDDDFF] text-black" // Colour when not selected
+                }`}
+                key={course.id}
+                onClick={() => addToselectedCourses(course.id)}
+              >
+                {course.name}
+              </div>
+            ))}
+          </div>
+
           <div className="mt-4">
             <button
               onClick={() => handleUpdateUser()}

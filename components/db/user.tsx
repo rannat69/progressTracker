@@ -97,6 +97,9 @@ export async function login(email: string, password: string) {
 export async function signup(formData: any) {
   const supabase = await createClient();
   let newId = null;
+
+  console.log("formData", formData);
+
   // create student or instructor
   if (formData.role === "student") {
     const { data: student, error } = await supabase
@@ -162,6 +165,27 @@ export async function signup(formData: any) {
         console.error("error", error);
         redirect("/error");
       }
+
+      // add record in instructors_courses
+
+      if (formData.courses) {
+        for (let i = 0; i < formData.courses.length; i++) {
+          const { data: course, error } = await supabase
+            .from("students_courses")
+            .insert([
+              {
+                student_id: newId,
+                course_id: formData.courses[i],
+              },
+            ])
+            .select();
+
+          if (error) {
+            console.error("error", error);
+            redirect("/error");
+          }
+        }
+      }
     }
 
     if (formData.role === "instructor") {
@@ -178,6 +202,27 @@ export async function signup(formData: any) {
       if (error) {
         console.error("error", error);
         redirect("/error");
+      }
+
+      // add record in instructors_courses
+
+      if (formData.courses) {
+        for (let i = 0; i < formData.courses.length; i++) {
+          const { data: course, error } = await supabase
+            .from("instructors_courses")
+            .insert([
+              {
+                instructor_id: newId,
+                course_id: formData.courses[i],
+              },
+            ])
+            .select();
+
+          if (error) {
+            console.error("error", error);
+            redirect("/error");
+          }
+        }
       }
     }
 
@@ -258,6 +303,49 @@ export async function updateUser(id: any, formData: any) {
     })
     .eq("id", id)
     .select();
+
+  console.log("data", data);
+  if (data) {
+    if (data[0].instructor_id) {
+      const { data: dataDelete, error } = await supabase
+        .from("instructors_courses")
+        .delete()
+        .eq("instructor_id", data[0].instructor_id);
+
+      if (formData.courses && formData.courses.length > 0) {
+        for (let i = 0; i < formData.courses.length; i++) {
+          const { data: dataInsert, error } = await supabase
+            .from("instructors_courses")
+            .insert([
+              {
+                instructor_id: data[0].instructor_id,
+                course_id: formData.courses[i],
+              },
+            ]);
+        }
+      }
+    }
+
+    if (data[0].student_id) {
+      const { data: dataDelete, error } = await supabase
+        .from("students_courses")
+        .delete()
+        .eq("student_id", data[0].student_id);
+
+      if (formData.courses && formData.courses.length > 0) {
+        for (let i = 0; i < formData.courses.length; i++) {
+          const { data: dataInsert, error } = await supabase
+            .from("students_courses")
+            .insert([
+              {
+                student_id: data[0].student_id,
+                course_id: formData.courses[i],
+              },
+            ]);
+        }
+      }
+    }
+  }
 
   if (error) {
     console.error("Error updating user:", error);

@@ -39,17 +39,19 @@ const MainContent = () => {
         if (!data) {
           router.push("/");
         } else {
-          const role = data[0].role;
-          if (role === "USER") {
+          console.log("data", data[0]);
+
+          const role = data[0].users.role;
+          console.log("role", role);
+          if (role === "USER" || !role) {
             menuTemp = menuTemp.filter(
               (item) =>
                 item.id !== "userManagement" &&
                 item.id !== "chkRequests" &&
                 item.id !== "students" &&
-                item.id !== "instructors"&&
+                item.id !== "instructors" &&
                 item.id !== "courses" &&
-             
-                item.id !== "reports"
+                item.id !== "reports",
             );
           } else if (role === "INSTRUCTOR") {
             menuTemp = menuTemp.filter((item) => item.id !== "userManagement");
