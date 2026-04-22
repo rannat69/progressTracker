@@ -1,7 +1,7 @@
 import { getAllCourses } from "./db/courses";
 
 import ExcelJS, { Workbook } from "exceljs";
-import { getAllInstructors } from "./db/instructors";
+import { getAllInstructors, getCoursesInstructor } from "./db/instructors";
 import { getAllTeams, getAllTeamsInfo } from "./db/teams";
 import {
   getAllStudents,
@@ -204,8 +204,15 @@ export const Reports = () => {
   }
 
   async function handleCourses(): Promise<void> {
-    const courses = await getAllCourses();
+    let coursesTemp: any[] = [];
 
+    if (role === "INSTRUCTOR") {
+      coursesTemp = (await getCoursesInstructor(instructorId)) ?? [];
+    } else {
+      coursesTemp = (await getAllCourses()) ?? [];
+    }
+
+    console.log("courses", coursesTemp);
     // Create Excel file with all courses
 
     const workbook = new ExcelJS.Workbook();
@@ -222,13 +229,15 @@ export const Reports = () => {
     ];
 
     // Add content of courses into worksheet
-    if (courses) {
-      for (const item of courses) {
+    if (coursesTemp) {
+      for (const item of coursesTemp) {
+        const itemCourse = item.courses;
+
         worksheet.addRow({
-          id: item.id,
-          name: item.name,
-          description: item.description,
-          start_date: item.start_date,
+          id: itemCourse.id,
+          name: itemCourse.name,
+          description: itemCourse.description,
+          start_date: itemCourse.start_date,
         });
       }
     }

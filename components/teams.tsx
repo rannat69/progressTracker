@@ -140,7 +140,7 @@ export const Teams = () => {
                     <div className="flex text-gray-500 text-sm gap-2">
                       {team.team_memberships.map(
                         (member: any, index: number) => (
-                          <h3>{member.students.full_name}</h3>
+                          <h3 key={index}>{member.students.full_name}</h3>
                         ),
                       )}
                     </div>
@@ -157,6 +157,7 @@ export const Teams = () => {
                     <ul className="flex flex-col gap-3 p-3 border-1 border-gray-200 rounded-xl">
                       {team.team_expenses.map((expense: any, index: number) => (
                         <li key={index}>
+                          
                           <h3>{expense.title}</h3>
                           <p className="text-gray-500 text-sm">
                             {expense.description}
@@ -172,9 +173,11 @@ export const Teams = () => {
 
                 <div>
                   <h2>Last 3 Mondays</h2>
+                  
                   <div className="flex flex-col gap-4">
                     {mondays.map((monday, index) => (
                       <div className="p-2" key={index}>
+                        
                         <h2>{monday.toLocaleDateString()}</h2>
                         {/* Affichage des entrées hebdomadaires associées */}
                         {team.team_weekly_entries
