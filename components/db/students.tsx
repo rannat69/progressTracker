@@ -80,6 +80,8 @@ export async function getInstructorStudentsWeeklyEntries(instructorId: string) {
 
   const courseIds = (courseRows ?? []).map((r) => r.course_id);
 
+  console.log("course ids", courseIds);
+
   const { data, error } = await supabase
     .from("students")
     .select(
@@ -138,7 +140,6 @@ export async function getStudentCourses(studentId: string) {
     return null;
   }
 }
-
 
 export async function getStudentWeeklyEntries(studentId: string) {
   const supabase = await createClient();

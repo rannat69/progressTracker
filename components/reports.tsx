@@ -3,7 +3,11 @@ import { getAllCourses } from "./db/courses";
 import ExcelJS, { Workbook } from "exceljs";
 import { getAllInstructors } from "./db/instructors";
 import { getAllTeams, getAllTeamsInfo } from "./db/teams";
-import { getAllStudents, getAllStudentsWeeklyEntries } from "./db/students";
+import {
+  getAllStudents,
+  getAllStudentsWeeklyEntries,
+  getInstructorStudentsWeeklyEntries,
+} from "./db/students";
 import { getAllWeeklyEntries } from "./db/weeklyEntries";
 import { getAllTeamWeeklyEntries } from "./db/teamWeeklyEntries";
 import { useEffect, useState } from "react";
@@ -14,6 +18,7 @@ import { useRouter } from "next/navigation";
 export const Reports = () => {
   const router = useRouter();
 
+  const [instructorId, setInstructorId] = useState("");
   const [role, setRole] = useState("");
   const [user, setUser] = useState<any>();
   useEffect(() => {
@@ -32,6 +37,7 @@ export const Reports = () => {
         email = dataSession[0].users.email;
         studentId = dataSession[0].users.student_id;
         instructorId = dataSession[0].users.instructor_id;
+        setInstructorId(instructorId);
         setRole(role);
       }
 
@@ -53,7 +59,14 @@ export const Reports = () => {
   }, []);
 
   async function handleStudents(): Promise<void> {
-    let students = await getAllStudentsWeeklyEntries();
+    let students: any[] = [];
+    if (role === "INSTRUCTOR") {
+      students = (await getInstructorStudentsWeeklyEntries(instructorId)) ?? [];
+    } else {
+      students = (await getAllStudentsWeeklyEntries()) ?? [];
+    }
+
+    console.log("students", students);
 
     // Create Excel file with all courses
 
@@ -78,17 +91,6 @@ export const Reports = () => {
       { header: "weekly entry status", key: "we_status", width: 50 },
       // Add more columns as needed
     ];
-
-    if (role != "ADMIN") {
-      if (user?.instructor_id && students) {
-        // Filter the studentsTemp array
-        students = students.filter(
-          (s) =>
-            s.students_courses[0]?.courses?.instructors_courses[0]
-              ?.instructor_id === user.instructor_id,
-        );
-      }
-    }
 
     // Add content of instructors into worksheet
     if (students) {
