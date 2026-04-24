@@ -47,7 +47,7 @@ export const StudentDetail = (selectedStudent: any) => {
   const [canUpdate, setCanUpdate] = useState(false);
 
   const [error, setError] = useState("");
-
+  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [updateMode, setUpdateMode] = useState(false);
 
@@ -66,6 +66,9 @@ export const StudentDetail = (selectedStudent: any) => {
             new Date(b.week_start_date).getTime() -
             new Date(a.week_start_date).getTime(),
         );
+
+        console.log("setStudentWeeklyEntries", studentsTemp);
+
         setStudentWeeklyEntries(studentsTemp);
       }
 
@@ -86,6 +89,8 @@ export const StudentDetail = (selectedStudent: any) => {
         setLoading(false);
         return;
       }
+
+      setRole(role);
 
       const user = (dataUser.data as any[])[0];
 
@@ -624,12 +629,18 @@ export const StudentDetail = (selectedStudent: any) => {
                 </ul>
 
                 <div className="flex justify-end ">
-                  <button
-                    className="bg-[#dddddd] rounded-md p-1"
-                    onClick={() => handleUpdateEntry(entry)}
-                  >
-                    <h2>Update Entry</h2>
-                  </button>
+                  {canUpdate &&
+                    (role === "ADMIN" ||
+                      role === "INSTRUCTOR" ||
+                      (role === "STUDENT" &&
+                        entry.updated_by_instructor === false)) && (
+                      <button
+                        className="bg-[#dddddd] rounded-md p-1"
+                        onClick={() => handleUpdateEntry(entry)}
+                      >
+                        <h2>Update Entry</h2>
+                      </button>
+                    )}
                 </div>
               </div>
             ))}
