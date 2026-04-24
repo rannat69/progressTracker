@@ -236,20 +236,20 @@ export const StudentDetail = (selectedStudent: any) => {
     }
 
     // check if date future
-    const today = new Date().toISOString().split("T")[0];
     const selectedDate = new Date(date).toISOString().split("T")[0];
-    if (selectedDate < today) {
-      setError("Date cannot be in the past");
-      return;
-    }
-
-    // check if date is monday
-    if (new Date(date).getDay() !== 1) {
-      setError("Date must be a Monday");
-      return;
-    }
-
     if (!updateMode) {
+      const today = new Date().toISOString().split("T")[0];
+
+      if (selectedDate < today) {
+        setError("Date cannot be in the past");
+        return;
+      }
+
+      // check if date is monday
+      if (new Date(date).getDay() !== 1) {
+        setError("Date must be a Monday");
+        return;
+      }
       // check if date already present in studentWeeklyEntries.week_start_date
       const existingEntry = studentWeeklyEntries.find(
         (entry) => entry.week_start_date === selectedDate,

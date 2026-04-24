@@ -76,15 +76,16 @@ export const Dashboard = () => {
       }
 
       if (role === "ADMIN") {
-        studentsTemp = await getAllStudentsWeeklyEntries() ?? [];
+        studentsTemp = (await getAllStudentsWeeklyEntries()) ?? [];
       }
 
       if (role === "INSTRUCTOR") {
-        studentsTemp = await getInstructorStudentsWeeklyEntries(instructorId) ?? [];
+        studentsTemp =
+          (await getInstructorStudentsWeeklyEntries(instructorId)) ?? [];
       }
 
       if (role === "USER") {
-        studentsTemp = await getSingleStudentsWeeklyEntries(studentId) ?? [];
+        studentsTemp = (await getSingleStudentsWeeklyEntries(studentId)) ?? [];
       }
 
       console.log("studentsTemp", studentsTemp);
@@ -165,28 +166,32 @@ export const Dashboard = () => {
             <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 background w-1/3">
               <h3>% with entry this week</h3>
               <h1>
-                {(students.filter(
-                  (student) =>
-                    student.weekly_entries && student.weekly_entries.length > 0,
-                ).length *
-                  100) /
-                  students.length}
+                {(
+                  (students.filter(
+                    (student) =>
+                      student.weekly_entries &&
+                      student.weekly_entries.length > 0,
+                  ).length *
+                    100) /
+                  students.length
+                ).toFixed(2)}
                 {" % "}
               </h1>
             </div>
             <div className="flex flex-col gap-2 border-1 border-gray-200 rounded-xl p-3 m-3 background w-1/3">
               <h3>Completion rate this week</h3>
               <h1>
-                {(students.filter((student) => {
-                  return (
-                    (student.weekly_entries &&
-                      student.weekly_entries.length > 0 &&
-                      student.weekly_entries[0].overall_status) === "achieved"
-                  );
-                }).length *
-                  100) /
-                  students.length}
-
+                {(
+                  (students.filter((student) => {
+                    return (
+                      (student.weekly_entries &&
+                        student.weekly_entries.length > 0 &&
+                        student.weekly_entries[0].overall_status) === "achieved"
+                    );
+                  }).length *
+                    100) /
+                  students.length
+                ).toFixed(2)}
                 {" % "}
               </h1>
             </div>
