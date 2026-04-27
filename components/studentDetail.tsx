@@ -332,6 +332,11 @@ export const StudentDetail = (selectedStudent: any) => {
     };
 
     // add entry to DB
+    let updatedByInstructor = false;
+    if (role === "ADMIN" || role === "INSTRUCTOR") {
+      updatedByInstructor = true;
+    }
+
     if (!updateMode) {
       enterStudentWeeklyEntry(
         newEntry.student_id,
@@ -341,6 +346,7 @@ export const StudentDetail = (selectedStudent: any) => {
         overallStatus,
         newEntry.progress_goal,
         newEntry.next_week_goals_json,
+        updatedByInstructor,
       );
     } else {
       updateStudentWeeklyEntry(
@@ -351,6 +357,7 @@ export const StudentDetail = (selectedStudent: any) => {
         overallStatus,
         newEntry.progress_goal,
         newEntry.next_week_goals_json,
+        updatedByInstructor,
       );
     }
 
@@ -629,13 +636,14 @@ export const StudentDetail = (selectedStudent: any) => {
                 </ul>
 
                 <div className="flex justify-end ">
+         
                   {canUpdate &&
                     (role === "ADMIN" ||
                       role === "INSTRUCTOR" ||
-                      (role === "STUDENT" &&
+                      (role === "USER" &&
                         entry.updated_by_instructor === false)) && (
                       <button
-                        className="bg-[#dddddd] rounded-md p-1"
+                        className="bg-[#dddddd] rounded-md p-1 cursor-pointer"
                         onClick={() => handleUpdateEntry(entry)}
                       >
                         <h2>Update Entry</h2>

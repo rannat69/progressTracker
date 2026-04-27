@@ -164,6 +164,7 @@ export async function enterStudentWeeklyEntry(
   overall_status: string,
   progress_notes: string,
   next_week_goals_json: string,
+  updated_by_instructor: boolean,
 ) {
   const supabase = await createClient();
 
@@ -179,6 +180,7 @@ export async function enterStudentWeeklyEntry(
           overall_status: overall_status,
           progress_notes: progress_notes,
           next_week_goals_json: next_week_goals_json,
+          updated_by_instructor: updated_by_instructor,
         },
       ])
       .select();
@@ -202,6 +204,7 @@ export async function updateStudentWeeklyEntry(
   overall_status: string,
   progress_notes: string,
   next_week_goals_json: string,
+  updated_by_instructor: boolean,
 ) {
   const supabase = await createClient();
 
@@ -215,6 +218,7 @@ export async function updateStudentWeeklyEntry(
           overall_status: overall_status,
           progress_notes: progress_notes,
           next_week_goals_json: next_week_goals_json,
+          updated_by_instructor: updated_by_instructor,
         },
       ])
       .eq("student_id", studentId)
